@@ -1,10 +1,7 @@
 package pe.pucp.edu.vrp.algorithm;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
+import pe.pucp.edu.vrp.Constant;
 
 @Getter
 @Setter
@@ -18,4 +15,15 @@ public class Node {
     private int matrixIndex;
     private int packageAmount;
     private double totalWeight;
+
+    public Node(int orderId, int matrixIndex, int packageAmount) {
+        this.orderId = orderId;
+        this.matrixIndex = matrixIndex;
+        this.packageAmount = packageAmount;
+        this.totalWeight = Constant.packageWeight * packageAmount;
+    }
+
+    public String toString() {
+        return "Order id: " + orderId;
+    }
 }

@@ -1,5 +1,6 @@
 package pe.pucp.edu.vrp.algorithm;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -16,53 +17,59 @@ import pe.pucp.edu.vrp.Constant;
  */
 @Getter
 @Setter
-@NoArgsConstructor
 @AllArgsConstructor
 @ToString
 public class Ant implements Comparable<Ant> {
     private List<Node> visitedNodes;
     private int totalCost;
 
-    public void work(Matrix[][] mapGraph, List<Node> nodes) {
+    public Ant() {
+        visitedNodes = new ArrayList<>();
+    }
+    public void work(Matrix[][] mapGraph, List<Node> orders) {
         int xIndex = 0, yIndex = 0;
-        Node nextNode = nodes.get(xIndex);
+        Node nextNode = orders.get(xIndex);
 
-        for (int i = 0; i <= nodes.size(); i++) {
+        for (int i = 0; i <= orders.size(); i++) {
             visitedNodes.add(nextNode);
             totalCost += mapGraph[xIndex][yIndex].getHeuristicValue();
             localUpdate(mapGraph[xIndex][yIndex]);
             xIndex = yIndex;
-            nextNode = chooseNext(nodes, mapGraph[xIndex]);
+            nextNode = chooseNext(orders, mapGraph[xIndex]);
             yIndex = nextNode.getMatrixIndex();
         }
     }
 
-    private Node chooseNext(List<Node> nodes, Matrix[] xRow) {
-        double randVal, p;
-        int i = 1;
-        randVal = Math.random();
-        p = calcProbability(xRow, nodes, i);
-        for (i = 1; i < nodes.size() - 1 && p > randVal; i++) {
+    private Node chooseNext(List<Node> orders, Matrix[] xRow) {
+        double p = 1, randVal = Math.random();
+        int i;
+        for (i = 1; i < orders.size() - 1 && p > randVal; i++) {
+            p = calcProbability(xRow, orders, orders.get(i).getMatrixIndex());
             randVal -= p;
-            p = calcProbability(xRow, nodes, nodes.get(i).getMatrixIndex());
         }
-        return nodes.get(i);
+        return orders.get(i);
     }
 
     private double calcProbability(Matrix[] values, List<Node> nodes, int i) {
         double numerator, denominator = 0;
+        if (values[i].getHeuristicValue() == 0)
+            return 0;
         numerator = multiply(values[i].getPheromoneConc(), values[i].getHeuristicValue());
         for (int x = 0; x < values.length; x++) {
             Node foundOrder = findNode(nodes, x);
-            Node foundVisited = findNode(nodes, x);
+            Node foundVisited = findNode(visitedNodes, x);
             if (Objects.isNull(foundVisited) && Objects.nonNull(foundOrder))
                 denominator += multiply(values[x].getPheromoneConc(), values[x].getHeuristicValue());
         }
-        return numerator / (denominator == 0 ? 1 : denominator);
+        if (numerator == 0 || denominator == 0)
+            return 0;
+
+        return numerator / denominator;
     }
 
     private double multiply(double pheromone, double heuristic) {
-        return Math.pow(pheromone, Constant.alpha) * Math.pow(heuristic, Constant.beta);
+        double value = Math.pow(pheromone, Constant.alpha) * Math.pow(heuristic, Constant.beta);
+        return value;
     }
 
     private Node findNode(List<Node> nodes, int x) {
@@ -74,13 +81,15 @@ public class Ant implements Comparable<Ant> {
 
     private void localUpdate(Matrix value) {
         double pheromoneConc;
-        pheromoneConc = (1 - Constant.rho) * value.getPheromoneConc() + 1 / value.getHeuristicValue();
-        value.setPheromoneConc(pheromoneConc);
+        if (value.getHeuristicValue() > 0) {
+            pheromoneConc = (1 - Constant.rho) * value.getPheromoneConc() + (1 / value.getHeuristicValue());
+            value.setPheromoneConc(pheromoneConc);
+        }
     }
 
 
     @Override
     public int compareTo(Ant ant) {
-        return ant.getTotalCost() - getTotalCost();
+        return getTotalCost() - ant.getTotalCost();
     }
 }

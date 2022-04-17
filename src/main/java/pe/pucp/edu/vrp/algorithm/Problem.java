@@ -1,14 +1,16 @@
 package pe.pucp.edu.vrp.algorithm;
 
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
+
+import java.util.List;
 
 /**
  * This cood does something
  */
 @Getter
 @Setter
+@NoArgsConstructor
+@AllArgsConstructor
 @Builder
 public class Problem {
     private int xSize;
@@ -17,14 +19,52 @@ public class Problem {
     private AntColony antColony;
     private Truck[] fleet;
 
-    public void initParams(int x, int y, int truckCount) {
-        xSize = x;
-        ySize = y;
-        mapGraph = new Matrix[x][y];
+    /*  double[][] pheromoneConc = {{1.0,1.0,1.0,1.0,1.0},
+                                    {1.0,0.0,1.0,1.0,1.0},
+                                    {1.0,1.0,0.0,1.0,1.0},
+                                    {1.0,1.0,1.0,0.0,1.0},
+                                    {1.0,1.0,1.0,1.0,0.0}};
+
+                                    3 = i
+                                    1 = j
+                                          0    1    2    3    4
+        double[][] heuristicValue = {0  {0.0, 9.5, 3.0, 7.0, 2.0},
+                                     1  {9.5, 0.0, 4.5, 3.5, 8.0},
+                                     2  {3.0, 4.5, 0.0, 6.0, 1.0},
+                                     3  {7.0, 3.5, 6.0, 0.0, 5.5},
+                                     4  {2.0, 8.0, 1.0, 5.5, 0.0}
+                                     };
+    */
+    public void initParams(int truckCount) {
+        int i, j;
+        double[][] pheromoneConc = {{0.0, 1.0, 1.0, 1.0, 1.0}, {1.0, 0.0, 1.0, 1.0, 1.0}, {1.0, 1.0, 0.0, 1.0, 1.0},
+                                    {1.0, 1.0, 1.0, 0.0, 1.0}, {1.0, 1.0, 1.0, 1.0, 0.0}};
+        double[][] heuristicValue = {{0.0, 9.5, 3.0, 7.0, 2.0}, {9.5, 0.0, 4.5, 3.5, 8.0}, {3.0, 4.5, 0.0, 6.0, 1.0},
+                                    {7.0, 3.5, 6.0, 0.0, 5.5}, {2.0, 8.0, 1.0, 5.5, 0.0}};
+        xSize = 5;
+        ySize = 5;
+        mapGraph = new Matrix[xSize][ySize];
+        for (i = 0; i < xSize; i++) {
+            mapGraph[i] = new Matrix[ySize];
+            for (j = 0; j < ySize; j++) {
+                mapGraph[i][j] = new Matrix();
+                mapGraph[i][j].setHeuristicValue(heuristicValue[i][j]);
+                mapGraph[i][j].setPheromoneConc(pheromoneConc[i][j]);
+            }
+        }
         fleet = new Truck[truckCount];
+        for (i = 0; i < truckCount; i++) {
+            fleet[i] = new Truck();
+            fleet[i].setMaxLoad(50);
+        }
+        antColony = new AntColony(10);
     }
 
-    public void route() {
+    public void route(List<Node> orderList) {
+        antColony.work(mapGraph, orderList);
+
+
+
 
     }
 

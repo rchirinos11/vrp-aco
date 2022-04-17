@@ -25,16 +25,23 @@ public class AntColony {
     public AntColony(int n) {
         colony = new Ant[n];
         colonySize = n;
+        bestAnts = 3;
     }
 
     public void work(Matrix[][] mapGraph, List<Node> orders) {
+        int i;
         System.out.println(colonySize);
-        for (Ant ant : colony) {
-            ant.work(mapGraph, orders);
+        System.out.println("\nPrint all:\n");
+        for (i = 0; i < colonySize; i++) {
+            colony[i] = new Ant();
+            colony[i].work(mapGraph, orders);
+            System.out.println(colony[i].getVisitedNodes() + "\nCost:" + colony[i].getTotalCost());
         }
+
+        System.out.println("\n\nPrint best:\n");
         Arrays.sort(colony);
-        for (int i = 0; i < bestAnts; i++) {
-            colony[i].getVisitedNodes();
+        for (i = 0; i < bestAnts; i++) {
+            System.out.println(colony[i].getVisitedNodes() + "\nCost:" + colony[i].getTotalCost());
         }
     }
 }
