@@ -6,7 +6,6 @@ import java.util.Objects;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import pe.pucp.edu.vrp.Constant;
@@ -26,6 +25,7 @@ public class Ant implements Comparable<Ant> {
     public Ant() {
         visitedNodes = new ArrayList<>();
     }
+
     public void work(Matrix[][] mapGraph, List<Node> orders) {
         int xIndex = 0, yIndex = 0;
         Node nextNode = orders.get(xIndex);
@@ -35,46 +35,64 @@ public class Ant implements Comparable<Ant> {
             totalCost += mapGraph[xIndex][yIndex].getHeuristicValue();
             localUpdate(mapGraph[xIndex][yIndex]);
             xIndex = yIndex;
-            nextNode = chooseNext(orders, mapGraph[xIndex]);
+            nextNode = chooseNext(orders, mapGraph, xIndex);
+            if (Objects.isNull(nextNode))
+                break;
             yIndex = nextNode.getMatrixIndex();
         }
     }
 
-    private Node chooseNext(List<Node> orders, Matrix[] xRow) {
-        double p = 1, randVal = Math.random();
-        int i;
-        for (i = 1; i < orders.size() - 1 && p > randVal; i++) {
-            p = calcProbability(xRow, orders, orders.get(i).getMatrixIndex());
-            randVal -= p;
+    private Node chooseNext(List<Node> orders, Matrix[][] mapGraph, int x) {
+        double randVal = Math.random();
+        int i, yVal = -1;
+        List<Double> probList = calcProbability(orders, mapGraph, x);
+        for (i = 0; i < mapGraph.length; i++) {
+            if (probList.get(i) > randVal) {
+                yVal = i;
+                break;
+            } else
+                randVal -= probList.get(i);
         }
-        return orders.get(i);
+        if (yVal == -1)
+            return null;
+        return findNode(orders, yVal);
     }
 
-    private double calcProbability(Matrix[] values, List<Node> nodes, int i) {
-        double numerator, denominator = 0;
-        if (values[i].getHeuristicValue() == 0)
-            return 0;
-        numerator = multiply(values[i].getPheromoneConc(), values[i].getHeuristicValue());
-        for (int x = 0; x < values.length; x++) {
-            Node foundOrder = findNode(nodes, x);
-            Node foundVisited = findNode(visitedNodes, x);
-            if (Objects.isNull(foundVisited) && Objects.nonNull(foundOrder))
-                denominator += multiply(values[x].getPheromoneConc(), values[x].getHeuristicValue());
+    private List<Double> calcProbability(List<Node> orders, Matrix[][] mapGraph, int x) {
+        List<Double> probList = new ArrayList<>();
+        for (int i = 0; i < mapGraph.length; i++) {
+            probList.add(0.0);
         }
-        if (numerator == 0 || denominator == 0)
-            return 0;
-
-        return numerator / denominator;
+        double denominator = getDenominator(orders, probList, mapGraph, x);
+        for (int i = 0; i < mapGraph.length; i++) {
+            probList.set(i, probList.get(i) / denominator);
+        }
+        return probList;
     }
 
-    private double multiply(double pheromone, double heuristic) {
-        double value = Math.pow(pheromone, Constant.alpha) * Math.pow(heuristic, Constant.beta);
-        return value;
+    private double getDenominator(List<Node> orders, List<Double> probList, Matrix[][] mapGraph, int x) {
+        double denominator = 0.0;
+        for (int y = 0; y < mapGraph.length; y++) {
+            if (Objects.isNull(findNode(visitedNodes, y)) && Objects.nonNull(findNode(orders, y))) {
+                if (x == y) probList.set(y, 0.0);
+                else probList.set(y, getNumerator(mapGraph[x][y]));
+                denominator += probList.get(y);
+            }
+        }
+        return denominator;
     }
 
-    private Node findNode(List<Node> nodes, int x) {
+    private Double getNumerator(Matrix values) {
+        double numerator = 0.0;
+        double pheromoneConc = values.getPheromoneConc();
+        if (pheromoneConc > 0.0)
+            numerator = Math.pow(pheromoneConc, Constant.ALPHA) * Math.pow(1 / values.getHeuristicValue(), Constant.BETA);
+        return numerator;
+    }
+
+    private Node findNode(List<Node> nodes, int i) {
         return nodes.stream()
-                .filter(node -> x == node.getMatrixIndex())
+                .filter(node -> i == node.getMatrixIndex())
                 .findFirst()
                 .orElse(null);
     }
@@ -82,7 +100,7 @@ public class Ant implements Comparable<Ant> {
     private void localUpdate(Matrix value) {
         double pheromoneConc;
         if (value.getHeuristicValue() > 0) {
-            pheromoneConc = (1 - Constant.rho) * value.getPheromoneConc() + (1 / value.getHeuristicValue());
+            pheromoneConc = (1 - Constant.RHO) * value.getPheromoneConc() + (1 / totalCost);
             value.setPheromoneConc(pheromoneConc);
         }
     }

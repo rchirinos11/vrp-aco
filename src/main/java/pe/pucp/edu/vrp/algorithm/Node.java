@@ -20,10 +20,10 @@ public class Node {
         this.orderId = orderId;
         this.matrixIndex = matrixIndex;
         this.packageAmount = packageAmount;
-        this.totalWeight = Constant.packageWeight * packageAmount;
+        this.totalWeight = Constant.PACKAGEWEIGHT * packageAmount;
     }
 
     public String toString() {
-        return "Order id: " + orderId;
+        return String.valueOf(orderId);
     }
 }

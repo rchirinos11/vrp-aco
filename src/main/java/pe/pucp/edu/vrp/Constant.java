@@ -5,8 +5,11 @@ package pe.pucp.edu.vrp;
  * All the constants used
  */
 public class Constant {
-    public static final double alpha = 1.0;
-    public static final double beta = 1.0;
-    public static final double rho = 0.05;
-    public static final double packageWeight = 1.0;
+    public static final double ALPHA = 1.0;
+    public static final double BETA = 1.0;
+    public static final double RHO = 0.05;
+    public static final double PACKAGEWEIGHT = 1.0;
+    public static final int ITERATIONS = 150;
+    public static final int BEST = 3;
+
 }
