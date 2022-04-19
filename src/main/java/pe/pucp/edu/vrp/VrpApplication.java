@@ -13,9 +13,8 @@ public class VrpApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(VrpApplication.class, args);
 		Problem problem = new Problem();
-		problem.initParams(5);
+		problem.initParams(10);
 		List<Node> orderList = new ArrayList<>();
-		orderList.add(new Node(0,0,0));
 		orderList.add(new Node(1,1,3));
 		orderList.add(new Node(2,6,1));
 		orderList.add(new Node(3,7,3));

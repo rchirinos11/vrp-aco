@@ -25,9 +25,9 @@ public class AntColony {
         colonySize = n;
     }
 
-    public List<Node> getRoute(Matrix[][] mapGraph, List<Node> orders) {
+    public List<Node> getRoute(Matrix[][] mapGraph, List<Node> orders, double maxLoad) {
         for (int i = 0; i < Constant.ITERATIONS; i++)
-            work(mapGraph, orders);
+            work(mapGraph, orders, maxLoad);
         return colony[0].getVisitedNodes();
     }
 
@@ -37,11 +37,11 @@ public class AntColony {
         }
     }
 
-    private void work(Matrix[][] mapGraph, List<Node> orders) {
+    private void work(Matrix[][] mapGraph, List<Node> orders, double maxLoad) {
         int i;
         for (i = 0; i < colonySize; i++) {
             colony[i] = new Ant();
-            colony[i].work(mapGraph, orders);
+            colony[i].work(mapGraph, orders, maxLoad);
         }
         Arrays.sort(colony);
         for (i = 0; i < Constant.BEST; i++) {

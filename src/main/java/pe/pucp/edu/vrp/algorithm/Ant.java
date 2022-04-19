@@ -21,21 +21,29 @@ import pe.pucp.edu.vrp.Constant;
 public class Ant implements Comparable<Ant> {
     private List<Node> visitedNodes;
     private int totalCost;
+    private double currentLoad;
 
     public Ant() {
         visitedNodes = new ArrayList<>();
+        totalCost = 0;
+        currentLoad = 0;
     }
 
-    public void work(Matrix[][] mapGraph, List<Node> orders) {
+    public void work(Matrix[][] mapGraph, List<Node> orders, double maxLoad) {
         int xIndex = 0, yIndex = 0;
-        Node nextNode = orders.get(xIndex);
+        Node nextNode = new Node(0, 0, 0);
 
         for (int i = 0; i <= orders.size(); i++) {
             visitedNodes.add(nextNode);
             totalCost += mapGraph[xIndex][yIndex].getHeuristicValue();
+            currentLoad += nextNode.getTotalWeight();
             localUpdate(mapGraph[xIndex][yIndex]);
             xIndex = yIndex;
             nextNode = chooseNext(orders, mapGraph, xIndex);
+            if (currentLoad > maxLoad) {
+                visitedNodes.remove(visitedNodes.size() - 1);
+                break;
+            }
             if (Objects.isNull(nextNode))
                 break;
             yIndex = nextNode.getMatrixIndex();
@@ -108,6 +116,6 @@ public class Ant implements Comparable<Ant> {
 
     @Override
     public int compareTo(Ant ant) {
-        return getTotalCost() - ant.getTotalCost();
+        return (int) ((totalCost - ant.getTotalCost()) / (currentLoad - ant.getCurrentLoad()));
     }
 }
