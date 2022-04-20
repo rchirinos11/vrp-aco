@@ -15,14 +15,14 @@ public class VrpApplication {
 		Problem problem = new Problem();
 		problem.initParams(10);
 		List<Node> orderList = new ArrayList<>();
-		orderList.add(new Node(1,1,3));
-		orderList.add(new Node(2,6,1));
-		orderList.add(new Node(3,7,3));
-		orderList.add(new Node(4,5,2));
-		orderList.add(new Node(5,3,8));
-		orderList.add(new Node(6,4,5));
-		orderList.add(new Node(7,2,4));
-		problem.route(orderList);
+		orderList.add(new Node(1,7,3));
+		orderList.add(new Node(2,4,1));
+		orderList.add(new Node(3,9,3));
+		orderList.add(new Node(4,3,2));
+		orderList.add(new Node(5,6,8));
+		orderList.add(new Node(6,5,5));
+		orderList.add(new Node(7,8,4));
+		problem.routeOrders(orderList);
 	}
 
 }

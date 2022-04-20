@@ -18,6 +18,7 @@ public class Truck {
     private double currentFuel;
     private double maxFuel;
     private List<Node> orderList;
+    private boolean working;
 
     public Truck() {
         currentFuel = 0.0;
