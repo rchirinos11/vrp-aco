@@ -29,9 +29,9 @@ public class Ant implements Comparable<Ant> {
         currentLoad = 0;
     }
 
-    public void work(Matrix[][] mapGraph, List<Node> orders, double maxLoad) {
-        int xIndex = 0, yIndex = 0;
-        Node nextNode = new Node(0, 0, 0);
+    public void work(int start, Matrix[][] mapGraph, List<Node> orders, double maxLoad) {
+        int xIndex = start, yIndex = start;
+        Node nextNode = new Node(0, start, 0);
 
         for (int i = 0; i <= orders.size(); i++) {
             visitedNodes.add(nextNode);
@@ -39,18 +39,14 @@ public class Ant implements Comparable<Ant> {
             currentLoad += nextNode.getTotalWeight();
             localUpdate(mapGraph[xIndex][yIndex]);
             xIndex = yIndex;
-            nextNode = chooseNext(orders, mapGraph, xIndex);
-            if (currentLoad > maxLoad) {
-                visitedNodes.remove(visitedNodes.size() - 1);
+            yIndex = chooseNext(orders, mapGraph, xIndex);
+            nextNode = findNode(orders, yIndex);
+            if (Objects.isNull(nextNode) || currentLoad + nextNode.getTotalWeight() > maxLoad)
                 break;
-            }
-            if (Objects.isNull(nextNode))
-                break;
-            yIndex = nextNode.getMatrixIndex();
         }
     }
 
-    private Node chooseNext(List<Node> orders, Matrix[][] mapGraph, int x) {
+    private int chooseNext(List<Node> orders, Matrix[][] mapGraph, int x) {
         double randVal = Math.random();
         int i, yVal = -1;
         List<Double> probList = calcProbability(orders, mapGraph, x);
@@ -61,9 +57,7 @@ public class Ant implements Comparable<Ant> {
             } else
                 randVal -= probList.get(i);
         }
-        if (yVal == -1)
-            return null;
-        return findNode(orders, yVal);
+        return yVal;
     }
 
     private List<Double> calcProbability(List<Node> orders, Matrix[][] mapGraph, int x) {
@@ -108,7 +102,7 @@ public class Ant implements Comparable<Ant> {
     private void localUpdate(Matrix value) {
         double pheromoneConc;
         if (value.getHeuristicValue() > 0) {
-            pheromoneConc = (1 - Constant.RHO) * value.getPheromoneConc() + (1 / totalCost);
+            pheromoneConc = (1 - Constant.RHO) * value.getPheromoneConc() + (1.0 / totalCost);
             value.setPheromoneConc(pheromoneConc);
         }
     }
@@ -116,6 +110,6 @@ public class Ant implements Comparable<Ant> {
 
     @Override
     public int compareTo(Ant ant) {
-        return (int) ((totalCost - ant.getTotalCost()) / (currentLoad - ant.getCurrentLoad()));
+        return (int) (totalCost / currentLoad - ant.getTotalCost() / ant.getCurrentLoad());
     }
 }

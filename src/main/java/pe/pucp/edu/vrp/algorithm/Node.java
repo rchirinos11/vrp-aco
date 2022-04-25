@@ -24,6 +24,6 @@ public class Node {
     }
 
     public String toString() {
-        return String.valueOf(orderId);
+            return String.format("%d", matrixIndex);
     }
 }

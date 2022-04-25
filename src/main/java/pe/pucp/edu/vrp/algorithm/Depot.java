@@ -13,11 +13,12 @@ public class Depot {
     private List<Truck> currentFleet;
     private AntColony antColony;
     private String location;
+    private int matrixIndex;
     private List<Node> depotOrders;
     private double longitude;
     private double latitude;
 
-    public Depot(int count, String location) {
+    public Depot(int count, String location, int matrixIndex) {
         totalFleet = new Truck[count];
         currentFleet = new ArrayList<>();
         for (int i = 0; i < count; i++) {
@@ -27,25 +28,32 @@ public class Depot {
         }
         antColony = new AntColony(10);
         this.location = location;
+        this.matrixIndex = matrixIndex;
         depotOrders = new ArrayList<>();
     }
 
-    public void depotRouting(Matrix[][] mapGraph) {
+    public double depotRouting(Matrix[][] mapGraph) {
+        double depotCost = 0.0;
         if (!depotOrders.isEmpty()) {
-            System.out.println("Performing routing for depot: " + location + "\nOrders: " + depotOrders);
+            System.out.println("\nPerforming routing for depot: " + location + "\nOrders: " + depotOrders);
             for (Truck truck : totalFleet) {
                 if (depotOrders.isEmpty()) {
-                    System.out.println("\nAll routed\nRemaining truck count: " + currentFleet.size());
+                    System.out.println("All routed\nRemaining truck count: " + currentFleet.size());
                     break;
                 }
-                List<Node> route = antColony.getRoute(mapGraph, depotOrders, truck.getMaxLoad());
-                if (route.size() > 1 && depotOrders.removeAll(route)) {
+                List<Node> route = antColony.getRoute(matrixIndex, mapGraph, depotOrders, truck.getMaxLoad());
+                if (depotOrders.removeAll(route) && route.size() > 1) {
+                    truck.setCurrentLoad(antColony.getColony()[0].getCurrentLoad());
+                    depotCost += antColony.getColony()[0].getTotalCost();
                     System.out.println("New Truck: " + route);
+                    System.out.println("Route cost: " + antColony.getColony()[0].getTotalCost() + " Truck load: " + truck.getCurrentLoad());
                     currentFleet.remove(truck);
                 } else {
                     System.out.println("Error");
                 }
             }
         }
+        System.out.println("Total depot cost: " + depotCost);
+        return depotCost;
     }
 }
