@@ -10,12 +10,24 @@ import pe.pucp.edu.vrp.Constant;
 @Builder
 public class Node {
     private int orderId;
-    private int xCoordinate;
-    private int yCoordinate;
+    private int ubigeo;
+    private double xCoordinate;
+    private double yCoordinate;
     private int matrixIndex;
     private int packageAmount;
     private double totalWeight;
+    private String region;
 
+    public Node(int  matrixIndex, int ubigeo, double xCoordinate, double yCoordinate, String region){
+        this.ubigeo=ubigeo;
+        this.xCoordinate=xCoordinate;
+        this.yCoordinate=yCoordinate;
+        this.region=region;
+        this.matrixIndex= matrixIndex;
+    }
+    public String imprimirOfi(){
+        return  (matrixIndex+","+ ubigeo+ ","+xCoordinate + "," + yCoordinate+","+region);
+    }
     public Node(int orderId, int matrixIndex, int packageAmount) {
         this.orderId = orderId;
         this.matrixIndex = matrixIndex;
