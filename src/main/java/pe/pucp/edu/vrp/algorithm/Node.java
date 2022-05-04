@@ -2,6 +2,7 @@ package pe.pucp.edu.vrp.algorithm;
 
 import lombok.*;
 import pe.pucp.edu.vrp.Constant;
+import pe.pucp.edu.vrp.Region;
 
 @Getter
 @Setter
@@ -10,17 +11,19 @@ import pe.pucp.edu.vrp.Constant;
 @Builder
 public class Node {
     private int orderId;
-    private int xCoordinate;
-    private int yCoordinate;
+    private double longitude;
+    private double latitude;
+    private Region region;
     private int matrixIndex;
     private int packageAmount;
     private double totalWeight;
 
-    public Node(int orderId, int matrixIndex, int packageAmount) {
+    public Node(int orderId, int matrixIndex, int packageAmount, Region region) {
         this.orderId = orderId;
         this.matrixIndex = matrixIndex;
         this.packageAmount = packageAmount;
         this.totalWeight = Constant.PACKAGEWEIGHT * packageAmount;
+        this.region = region;
     }
 
     public String toString() {

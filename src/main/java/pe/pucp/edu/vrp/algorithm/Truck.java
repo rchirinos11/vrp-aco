@@ -15,14 +15,13 @@ import java.util.List;
 public class Truck {
     private double currentLoad;
     private double maxLoad;
-    private double currentFuel;
-    private double maxFuel;
     private List<Node> orderList;
     private boolean working;
 
-    public Truck() {
-        currentFuel = 0.0;
+    public Truck(double max) {
         currentLoad = 0.0;
         orderList = new ArrayList<>();
+        maxLoad = max;
+        working = true;
     }
 }

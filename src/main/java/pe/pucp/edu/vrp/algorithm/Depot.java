@@ -2,6 +2,7 @@ package pe.pucp.edu.vrp.algorithm;
 
 import lombok.Getter;
 import lombok.Setter;
+import pe.pucp.edu.vrp.Region;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,18 +13,18 @@ public class Depot {
     private Truck[] totalFleet;
     private List<Truck> currentFleet;
     private AntColony antColony;
+    private double longitude;
+    private double latitude;
+    private Region region;
     private String location;
     private int matrixIndex;
     private List<Node> depotOrders;
-    private double longitude;
-    private double latitude;
 
     public Depot(int count, String location, int matrixIndex) {
         totalFleet = new Truck[count];
         currentFleet = new ArrayList<>();
         for (int i = 0; i < count; i++) {
-            totalFleet[i] = new Truck();
-            totalFleet[i].setMaxLoad(50);
+            totalFleet[i] = new Truck(50);
             currentFleet.add(totalFleet[i]);
         }
         antColony = new AntColony(10);
@@ -46,14 +47,15 @@ public class Depot {
                     truck.setCurrentLoad(antColony.getColony()[0].getCurrentLoad());
                     depotCost += antColony.getColony()[0].getTotalCost();
                     System.out.println("New Truck: " + route);
-                    System.out.println("Route cost: " + antColony.getColony()[0].getTotalCost() + " Truck load: " + truck.getCurrentLoad());
+                    System.out.printf("Route cost: %4.1f h Truck load: %4.1f\n", antColony.getColony()[0].getTotalCost(), truck.getCurrentLoad());
                     currentFleet.remove(truck);
                 } else {
-                    System.out.println("Error");
+                    System.out.println("Error, orders missing to route: " + depotOrders);
+                    break;
                 }
             }
         }
-        System.out.println("Total depot cost: " + depotCost);
+        System.out.printf("Total depot cost: %3.2f h\n", depotCost);
         return depotCost;
     }
 }

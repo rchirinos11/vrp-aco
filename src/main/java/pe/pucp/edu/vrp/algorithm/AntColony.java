@@ -45,17 +45,20 @@ public class AntColony {
         }
         Arrays.sort(colony);
         for (i = 0; i < Constant.BEST; i++) {
-            globalUpdate(mapGraph, colony[i]);
+            globalUpdate(mapGraph, colony[i], start);
         }
     }
 
-    private void globalUpdate(Matrix[][] mapGraph, Ant ant) {
-        int i = 0, j;
+    private void globalUpdate(Matrix[][] mapGraph, Ant ant, int start) {
+        int i = start, j;
+        double concValue;
         for (Node node : ant.getVisitedNodes()) {
             j = node.getMatrixIndex();
-            double concValue = mapGraph[i][j].getPheromoneConc();
-            concValue = (1 - Constant.RHO) * concValue + Constant.RHO * (1.5 / mapGraph[i][j].getHeuristicValue());
-            mapGraph[i][j].setPheromoneConc(concValue);
+            if (mapGraph[i][j].getHeuristicValue() > 0) {
+                concValue = mapGraph[i][j].getPheromoneConc();
+                concValue = (1 - Constant.RHO) * concValue + Constant.RHO * (1.5 / mapGraph[i][j].getHeuristicValue());
+                mapGraph[i][j].setPheromoneConc(concValue);
+            }
             i = j;
         }
     }

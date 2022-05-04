@@ -9,6 +9,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import pe.pucp.edu.vrp.Constant;
+import pe.pucp.edu.vrp.Region;
 
 /**
  * <b>Class</b>: Ant <br/>
@@ -20,7 +21,7 @@ import pe.pucp.edu.vrp.Constant;
 @ToString
 public class Ant implements Comparable<Ant> {
     private List<Node> visitedNodes;
-    private int totalCost;
+    private double totalCost;
     private double currentLoad;
 
     public Ant() {
@@ -31,14 +32,18 @@ public class Ant implements Comparable<Ant> {
 
     public void work(int start, Matrix[][] mapGraph, List<Node> orders, double maxLoad) {
         int xIndex = start, yIndex = start;
-        Node nextNode = new Node(0, start, 0);
+        Node nextNode = new Node(0, start, 0, Region.COAST);
 
         for (int i = 0; i <= orders.size(); i++) {
-            visitedNodes.add(nextNode);
-            totalCost += mapGraph[xIndex][yIndex].getHeuristicValue();
-            currentLoad += nextNode.getTotalWeight();
-            localUpdate(mapGraph[xIndex][yIndex]);
-            xIndex = yIndex;
+            if (nextNode.getRegion().getMaxHours() > totalCost + mapGraph[xIndex][yIndex].getHeuristicValue() / nextNode.getRegion().getSpeed()) {
+                visitedNodes.add(nextNode);
+                totalCost += (mapGraph[xIndex][yIndex].getHeuristicValue() / nextNode.getRegion().getSpeed());
+                if (xIndex != yIndex)
+                    totalCost += 1;
+                currentLoad += nextNode.getTotalWeight();
+                localUpdate(mapGraph[xIndex][yIndex]);
+                xIndex = yIndex;
+            }
             yIndex = chooseNext(orders, mapGraph, xIndex);
             nextNode = findNode(orders, yIndex);
             if (Objects.isNull(nextNode) || currentLoad + nextNode.getTotalWeight() > maxLoad)
@@ -56,6 +61,9 @@ public class Ant implements Comparable<Ant> {
                 break;
             } else
                 randVal -= probList.get(i);
+        }
+        if (yVal == -1) {
+            //chooseRandom();
         }
         return yVal;
     }
@@ -75,20 +83,31 @@ public class Ant implements Comparable<Ant> {
     private double getDenominator(List<Node> orders, List<Double> probList, Matrix[][] mapGraph, int x) {
         double denominator = 0.0;
         for (int y = 0; y < mapGraph.length; y++) {
-            if (Objects.isNull(findNode(visitedNodes, y)) && Objects.nonNull(findNode(orders, y))) {
-                if (x == y) probList.set(y, 0.0);
-                else probList.set(y, getNumerator(mapGraph[x][y]));
-                denominator += probList.get(y);
+            if (isBlocked(x, y)) {
+                probList.set(y, 0.0);
+            } else {
+                Node n;
+                if (Objects.isNull(findNode(visitedNodes, y)) && Objects.nonNull(n = findNode(orders, y))) {
+                    if (x != y) {
+                        probList.set(y, getNumerator(mapGraph[x][y], n) / n.getRegion().getSpeed());
+                        denominator += probList.get(y);
+                    }
+                }
             }
         }
         return denominator;
     }
 
-    private Double getNumerator(Matrix values) {
+    private boolean isBlocked(int x, int y) {
+        //TODO: find in connection list
+        return false;
+    }
+
+    private Double getNumerator(Matrix values, Node n) {
         double numerator = 0.0;
         double pheromoneConc = values.getPheromoneConc();
         if (pheromoneConc > 0.0)
-            numerator = Math.pow(pheromoneConc, Constant.ALPHA) * Math.pow(1 / values.getHeuristicValue(), Constant.BETA);
+            numerator = Math.pow(pheromoneConc, Constant.ALPHA) * Math.pow(1 / values.getHeuristicValue(), Constant.BETA) * Math.pow(1 / (double) n.getRegion().getMaxHours(), Constant.BETA);
         return numerator;
     }
 
@@ -110,6 +129,7 @@ public class Ant implements Comparable<Ant> {
 
     @Override
     public int compareTo(Ant ant) {
-        return (int) (totalCost / currentLoad - ant.getTotalCost() / ant.getCurrentLoad());
+        return (int) ((currentLoad * visitedNodes.size() * visitedNodes.size() * visitedNodes.size() / totalCost)
+                - (ant.getCurrentLoad() * ant.getVisitedNodes().size() * ant.getVisitedNodes().size() * ant.getVisitedNodes().size() / ant.getTotalCost()));
     }
 }
