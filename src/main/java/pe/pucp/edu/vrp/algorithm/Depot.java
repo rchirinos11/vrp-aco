@@ -19,6 +19,17 @@ public class Depot {
     private String location;
     private int matrixIndex;
     private List<Node> depotOrders;
+    private int ubigeo;
+
+    public Depot ( int matrixIndex, int ubigeo, double longitude, double latitude){
+        this.ubigeo=ubigeo;
+        this.longitude=longitude;
+        this.latitude=latitude;
+        this.matrixIndex=matrixIndex;
+    }
+    public String imprimirAlma(){
+        return  (matrixIndex+"," +ubigeo+ ","+longitude + "," + latitude);
+    }
 
     public Depot(int count, String location, int matrixIndex) {
         totalFleet = new Truck[count];
