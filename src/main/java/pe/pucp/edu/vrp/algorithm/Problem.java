@@ -31,8 +31,8 @@ public class Problem {
     private List<Depot> depotList;
     private List<Connection> connectionList;
 
-    public void initParams(int truckCount) throws IOException {
-        int size = readOffices(truckCount);
+    public void initParams() throws IOException {
+        int size = readOffices();
         mapGraph = new Matrix[size][size];
         for (int i = 0; i < size; i++) {
             mapGraph[i] = new Matrix[size];
@@ -51,18 +51,18 @@ public class Problem {
             }
         }
         readConnections();
+        readOrderFile();
     }
 
-    public double routeOrders(List<Order> orderList) {
+    public double routeOrders() {
         double totalTraveled = 0;
-        findClosest(orderList);
         for (Depot depot : depotList) {
             totalTraveled += depot.depotRouting(mapGraph, nodeList, connectionList);
         }
         return totalTraveled;
     }
 
-    private int readOffices(int truckCount) throws IOException {
+    private int readOffices() throws IOException {
         nodeList = new ArrayList<>();
         depotList = new ArrayList<>();
 
@@ -108,6 +108,30 @@ public class Problem {
             y = n.getMatrixIndex();
             connectionList.add(new Connection(x, y));
         }
+    }
+
+    private void readOrderFile() throws IOException {
+        File file = new ClassPathResource("inf226.ventas202205.txt").getFile();
+        Depot depot;
+        Node node;
+        int x = 0;
+
+        String line;
+        String[] splittedLine;
+        BufferedReader br = new BufferedReader(new FileReader(file));
+        while ((line = br.readLine()) != null) {
+            if (x == 50)
+                break;
+            splittedLine = line.split(",");
+            int demand = Integer.parseInt(splittedLine[2].trim());
+            splittedLine = splittedLine[1].trim().split(" =>  ");
+            String depotUbigeo = splittedLine[0];
+            String nodeUbigeo = splittedLine[1];
+            depot = depotList.stream().filter(d -> d.getUbigeo().equals(depotUbigeo)).findFirst().orElse(null);
+            node = nodeList.stream().filter(n -> n.getUbigeo().equals(nodeUbigeo)).findFirst().orElse(null);
+            depot.getDepotOrders().add(new Order(x++, node, demand));
+        }
+
     }
 
     private void findClosest(List<Order> orderList) {
