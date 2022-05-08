@@ -1,4 +1,4 @@
-package pe.pucp.edu.vrp;
+package pe.pucp.edu.vrp.util;
 
 /**
  * <b>Class</b>: Constant <br/>
@@ -8,8 +8,7 @@ public class Constant {
     public static final double ALPHA = 1.0;
     public static final double BETA = 1.0;
     public static final double RHO = 0.05;
-    public static final double PACKAGEWEIGHT = 5.0;
-    public static final int ITERATIONS = 5000;
+    public static final int ITERATIONS = 50;
     public static final int BEST = 3;
 
 }

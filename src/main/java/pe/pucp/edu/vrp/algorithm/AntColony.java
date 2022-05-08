@@ -1,12 +1,11 @@
 package pe.pucp.edu.vrp.algorithm;
 
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import pe.pucp.edu.vrp.Constant;
+import pe.pucp.edu.vrp.util.Constant;
 
 import java.util.Arrays;
 import java.util.List;
@@ -25,9 +24,9 @@ public class AntColony {
         colonySize = n;
     }
 
-    public List<Node> getRoute(int start, Matrix[][] mapGraph, List<Node> orders, double maxLoad) {
+    public List<Node> getRoute(int start, Matrix[][] mapGraph, List<Node> nodeList, List<Order> orderList, List<Connection> connectionList, double maxLoad) {
         for (int i = 0; i < Constant.ITERATIONS; i++)
-            work(start, mapGraph, orders, maxLoad);
+            work(start, mapGraph, nodeList, orderList, connectionList, maxLoad);
         return colony[0].getVisitedNodes();
     }
 
@@ -37,11 +36,11 @@ public class AntColony {
         }
     }
 
-    private void work(int start, Matrix[][] mapGraph, List<Node> orders, double maxLoad) {
+    private void work(int start, Matrix[][] mapGraph, List<Node> nodeList, List<Order> orderList, List<Connection> connectionList, double maxLoad) {
         int i;
         for (i = 0; i < colonySize; i++) {
-            colony[i] = new Ant();
-            colony[i].work(start, mapGraph, orders, maxLoad);
+            colony[i] = new Ant(start, nodeList, connectionList);
+            colony[i].work(mapGraph, orderList, maxLoad);
         }
         Arrays.sort(colony);
         for (i = 0; i < Constant.BEST; i++) {

@@ -13,6 +13,7 @@ import java.util.List;
 @Builder
 @AllArgsConstructor
 public class Truck {
+    private char type;
     private double currentLoad;
     private double maxLoad;
     private List<Node> orderList;
