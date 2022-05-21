@@ -16,6 +16,6 @@ public class Order {
 
     @Override
     public String toString() {
-        return String.valueOf(destination.getMatrixIndex());
+        return destination.toString();
     }
 }

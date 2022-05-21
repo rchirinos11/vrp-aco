@@ -11,12 +11,12 @@ import java.util.List;
 @SpringBootApplication
 public class VrpApplication {
     public static void main(String[] args) throws Exception {
-        long start = System.currentTimeMillis();
 //		SpringApplication.run(VrpApplication.class, args);
 //		System.setOut(new PrintStream("output"));
         Problem problem = new Problem();
         problem.initParams();
 
+        long start = System.currentTimeMillis();
         double traveled = problem.routeOrders();
         long finish = System.currentTimeMillis();
         System.out.println("\nElapsed time: " + (finish - start) + " ms");

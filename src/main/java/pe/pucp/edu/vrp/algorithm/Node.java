@@ -18,6 +18,6 @@ public class Node {
     private int matrixIndex;
 
     public String toString() {
-        return String.format("%d", matrixIndex);
+        return city;
     }
 }

@@ -30,9 +30,13 @@ public class Depot extends Node {
 
     public double depotRouting(Matrix[][] mapGraph, List<Node> nodeList, List<Connection> connectionList) {
         double depotCost = 0.0;
+        int count = 0;
         if (!depotOrders.isEmpty()) {
             System.out.println("\nPerforming routing for depot: " + getCity() + "\nOrders: " + depotOrders);
-            for (Truck truck : totalFleet) {
+            while(true) {
+                if (currentFleet.isEmpty() || count == 10)
+                    break;
+                Truck truck = currentFleet.get(0);
                 if (depotOrders.isEmpty()) {
                     System.out.println("All routed\nRemaining truck count: " + currentFleet.size());
                     break;
@@ -43,9 +47,9 @@ public class Depot extends Node {
                     depotCost += antColony.getColony()[0].getTotalCost();
                     System.out.println("New Truck: " + route);
                     System.out.printf("Route cost: %4.1f h Truck load: %4.1f\n", antColony.getColony()[0].getTotalCost(), truck.getCurrentLoad());
-                    currentFleet.remove(truck);
+                    currentFleet.remove(0);
                 } else {
-                    break;
+                    count++;
                 }
             }
             if (!depotOrders.isEmpty())

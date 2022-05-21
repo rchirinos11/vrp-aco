@@ -39,8 +39,8 @@ public class AntColony {
     private void work(int start, Matrix[][] mapGraph, List<Node> nodeList, List<Order> orderList, List<Connection> connectionList, double maxLoad) {
         int i;
         for (i = 0; i < colonySize; i++) {
-            colony[i] = new Ant(start, nodeList, connectionList);
-            colony[i].work(mapGraph, orderList, maxLoad);
+            colony[i] = new Ant(start, nodeList, connectionList, orderList);
+            colony[i].work(mapGraph, maxLoad);
         }
         Arrays.sort(colony);
         for (i = 0; i < Constant.BEST; i++) {

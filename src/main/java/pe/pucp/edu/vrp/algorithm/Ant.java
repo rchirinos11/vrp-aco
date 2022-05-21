@@ -23,21 +23,23 @@ public class Ant implements Comparable<Ant> {
     private List<Node> visitedNodes;
     private List<Node> nodeList;
     private List<Connection> connectionList;
+    private List<Order> orderList;
     private double totalCost;
     private double currentLoad;
     private int start;
 
 
-    public Ant(int x, List<Node> nodeList, List<Connection> connectionList) {
+    public Ant(int x, List<Node> nodeList, List<Connection> connectionList, List<Order> orderList) {
         visitedNodes = new ArrayList<>();
         totalCost = 0;
         currentLoad = 0;
         start = x;
         this.nodeList = nodeList;
         this.connectionList = connectionList;
+        this.orderList = orderList;
     }
 
-    public void work(Matrix[][] mapGraph, List<Order> orderList, double maxLoad) {
+    public void work(Matrix[][] mapGraph, double maxLoad) {
         int xIndex = start, yIndex, count = 0;
         Node nextNode = nodeList.get(start);
         Order order;
@@ -45,8 +47,8 @@ public class Ant implements Comparable<Ant> {
 
         visitedNodes.add(nextNode);
         while(true) {
-            yIndex = chooseNext(orderList, mapGraph, xIndex);
-            if (yIndex == -1)
+            yIndex = chooseNext(mapGraph, xIndex);
+            if (count == 3 ||  yIndex == -1)
                 break;
             nextNode = nodeList.get(yIndex);
             order = findOrder(orderList, nextNode);
@@ -57,24 +59,32 @@ public class Ant implements Comparable<Ant> {
                 if (xIndex != yIndex) totalCost += 1;
                 localUpdate(mapGraph[xIndex][yIndex]);
                 xIndex = yIndex;
-                if (Objects.nonNull(order) && currentLoad + order.getPackageAmount() <= maxLoad) {
-                    currentLoad += order.getPackageAmount();
-                } else if (Objects.nonNull(order)) {
-                    visitedNodes.remove(nextNode);
-                    break;
-                } else {
+                if (Objects.nonNull(order) && Objects.nonNull(findNode(visitedNodes, nextNode.getMatrixIndex()))) {
+                    if (order.getPackageAmount() + currentLoad > maxLoad) {
+                        visitedNodes.remove(nextNode);
+                        break;
+                    } else {
+                        count = 0;
+                        currentLoad += order.getPackageAmount();
+                    }
+                } else if (Objects.isNull(order)) {
                     count++;
                 }
             } else {
                 break;
             }
         }
+
+        for (int i = visitedNodes.size() -1 ; count > 0; i--) {
+            visitedNodes.remove(i);
+            count--;
+        }
     }
 
-    private int chooseNext(List<Order> orderList, Matrix[][] mapGraph, int x) {
+    private int chooseNext(Matrix[][] mapGraph, int x) {
         double randVal = Math.random();
         int i, yVal = -1;
-        List<Double> probList = calcProbability(orderList, mapGraph, x);
+        List<Double> probList = calcProbability(mapGraph, x, true);
         for (i = 0; i < mapGraph.length; i++) {
             if (probList.get(i) > randVal) {
                 yVal = i;
@@ -83,34 +93,46 @@ public class Ant implements Comparable<Ant> {
                 randVal -= probList.get(i);
         }
         if (yVal == -1) {
-            //chooseRandom();
+            randVal = Math.random();
+            probList = calcProbability(mapGraph, x, false);
+            for (i = 0; i < mapGraph.length; i++) {
+                if (probList.get(i) > randVal) {
+                    yVal = i;
+                    break;
+                } else
+                    randVal -= probList.get(i);
+            }
         }
         return yVal;
     }
 
-    private List<Double> calcProbability(List<Order> orderList, Matrix[][] mapGraph, int x) {
+    private List<Double> calcProbability(Matrix[][] mapGraph, int x, boolean complete) {
         List<Double> probList = new ArrayList<>();
         for (int i = 0; i < mapGraph.length; i++) {
             probList.add(0.0);
         }
-        double denominator = getDenominator(orderList, probList, mapGraph, x);
+        double denominator = getDenominator(probList, mapGraph, x, complete);
         for (int i = 0; i < mapGraph.length; i++) {
             probList.set(i, probList.get(i) / denominator);
         }
         return probList;
     }
 
-    private double getDenominator(List<Order> orderList, List<Double> probList, Matrix[][] mapGraph, int x) {
+    private double getDenominator(List<Double> probList, Matrix[][] mapGraph, int x, boolean complete) {
         double denominator = 0.0;
         double speed;
         for (int y = 0; y < mapGraph.length; y++) {
             if (!isBlocked(x, y)) {
-                if (Objects.isNull(findNode(visitedNodes, y)) && Objects.nonNull(findOrder(orderList, nodeList.get(y)))) {
-                    if (x != y) {
+                if (complete) {
+                    if (Objects.isNull(findNode(visitedNodes, y)) && Objects.nonNull(findOrder(orderList, nodeList.get(y))) && x != y) {
                         speed = Speed.valueOf(nodeList.get(x).getRegion().name() + nodeList.get(y).getRegion().name()).getSpeed();
                         probList.set(y, getNumerator(mapGraph[x][y], nodeList.get(y)) / speed);
                         denominator += probList.get(y);
                     }
+                } else {
+                    speed = Speed.valueOf(nodeList.get(x).getRegion().name() + nodeList.get(y).getRegion().name()).getSpeed();
+                    probList.set(y, getNumerator(mapGraph[x][y], nodeList.get(y)) / speed);
+                    denominator += probList.get(y);
                 }
             }
         }
@@ -149,7 +171,7 @@ public class Ant implements Comparable<Ant> {
 
     private void localUpdate(Matrix value) {
         double pheromoneConc;
-        if (value.getHeuristicValue() > 0) {
+        if (value.getHeuristicValue() > 0 && totalCost > 0) {
             pheromoneConc = (1 - Constant.RHO) * value.getPheromoneConc() + (1.0 / totalCost);
             value.setPheromoneConc(pheromoneConc);
         }
@@ -158,6 +180,7 @@ public class Ant implements Comparable<Ant> {
 
     @Override
     public int compareTo(Ant ant) {
-        return (int) ((visitedNodes.size() / totalCost) - (ant.getVisitedNodes().size() / ant.getTotalCost()));
+        return (int) (visitedNodes.size() / (totalCost == 0 ? 999 : totalCost)
+                - ant.getVisitedNodes().size() / (ant.getTotalCost() == 0 ? 999 : ant.getTotalCost()));
     }
 }
