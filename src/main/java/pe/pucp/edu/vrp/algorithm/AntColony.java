@@ -25,8 +25,7 @@ public class AntColony {
     }
 
     public List<Node> getRoute(int start, Matrix[][] mapGraph, List<Node> nodeList, List<Order> orderList, List<Connection> connectionList, double maxLoad) {
-        for (int i = 0; i < Constant.ITERATIONS; i++)
-            work(start, mapGraph, nodeList, orderList, connectionList, maxLoad);
+        work(start, mapGraph, nodeList, orderList, connectionList, maxLoad);
         return colony[0].getVisitedNodes();
     }
 

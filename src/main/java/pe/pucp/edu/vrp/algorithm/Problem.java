@@ -26,12 +26,12 @@ import java.util.Scanner;
 @Builder
 public class Problem {
     private int size;
-    private Matrix[][] mapGraph;
-    private List<Node> nodeList;
-    private List<Depot> depotList;
-    private List<Connection> connectionList;
+    public static Matrix[][] mapGraph;
+    public static List<Node> nodeList;
+    public static List<Depot> depotList;
+    public static List<Connection> connectionList;
 
-    public void initParams() throws IOException {
+    public static void initParams() throws IOException {
         int size = readOffices();
         mapGraph = new Matrix[size][size];
         for (int i = 0; i < size; i++) {
@@ -51,10 +51,9 @@ public class Problem {
             }
         }
         readConnections();
-        readOrderFile();
     }
 
-    public double routeOrders() {
+    public static double routeOrders() {
         double totalTraveled = 0;
         for (Depot depot : depotList) {
             totalTraveled += depot.depotRouting(mapGraph, nodeList, connectionList);
@@ -62,7 +61,7 @@ public class Problem {
         return totalTraveled;
     }
 
-    private int readOffices() throws IOException {
+    private static int readOffices() throws IOException {
         nodeList = new ArrayList<>();
         depotList = new ArrayList<>();
 
@@ -82,18 +81,18 @@ public class Problem {
 
             //Cargando los 3 Almacenes Principales
             if (values[2].equals("LIMA"))
-                depotList.add(new Depot(node, 21));
+                depotList.add(new Depot(node));
             if (values[2].equals("TRUJILLO"))
-                depotList.add(new Depot(node, 10));
-             if (values[2].equals("AREQUIPA"))
-                 depotList.add(new Depot(node, 14));
+                depotList.add(new Depot(node));
+            if (values[2].equals("AREQUIPA"))
+                depotList.add(new Depot(node));
 
             n = n + 1;
         }
         return n;
     }
 
-    private void readConnections() throws IOException {
+    private static void readConnections() throws IOException {
         connectionList = new ArrayList<>();
         File file = new ClassPathResource("inf226.tramos.v.2.0.txt").getFile();
         Scanner sc = new Scanner(file);
@@ -110,6 +109,12 @@ public class Problem {
         }
     }
 
+    public static void resetDepots() {
+        for (Depot d : depotList) {
+            d.getDepotOrders().clear();
+            d.getCurrentFleet().clear();
+        }
+    }
     private void readOrderFile() throws IOException {
         File file = new ClassPathResource("inf226.ventas202205.txt").getFile();
         Depot depot;
@@ -132,6 +137,21 @@ public class Problem {
             depot.getDepotOrders().add(new Order(x++, node, demand));
         }
 
+    }
+
+    public static void assignClosest(Order order) {
+        double minLength = 9999.9;
+        int x = -1;
+        for (int i = 0; i < depotList.size(); i++) {
+            Matrix matrixVal = mapGraph[depotList.get(i).getMatrixIndex()][order.getDestination().getMatrixIndex()];
+            if (matrixVal.getHeuristicValue() < minLength && matrixVal.getHeuristicValue() > 0) {
+                minLength = matrixVal.getHeuristicValue();
+                x = i;
+            }
+        }
+        if (x != -1) {
+            depotList.get(x).getDepotOrders().add(order);
+        }
     }
 
     private void findClosest(List<Order> orderList) {
@@ -161,7 +181,7 @@ public class Problem {
         i = 0x5f3759df - (i >> 1);                      // what the fuck?
         y = Float.intBitsToFloat(i);
         y = y * (threehalfs - x2 * y * y);              // 1st iteration
-        //  y = y * (threehalfs - x2 * number * number);    // 2nd iteration, can be removed
+    //  y = y * (threehalfs - x2 * number * number);    // 2nd iteration, can be removed
 
         return y;
     }
