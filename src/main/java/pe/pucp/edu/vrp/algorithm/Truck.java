@@ -17,10 +17,12 @@ public class Truck {
     private char type;
     private double currentLoad;
     private double maxLoad;
+    private double cost;
+    private int start;
     private List<Node> nodeRoute;
     private boolean working;
 
-    public Truck(int id, double max) {
+    public Truck(int id, int start, double max) {
         currentLoad = 0.0;
         nodeRoute = new ArrayList<>();
         maxLoad = max;
@@ -33,6 +35,7 @@ public class Truck {
         currentLoad = t.getCurrentLoad();
         maxLoad = t.getMaxLoad();
         working = t.isWorking();
+        start = t.start;
         nodeRoute = new ArrayList<>(t.getNodeRoute());
     }
 }

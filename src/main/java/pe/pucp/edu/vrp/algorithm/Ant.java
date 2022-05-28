@@ -169,6 +169,6 @@ public class Ant implements Comparable<Ant> {
 
     @Override
     public int compareTo(Ant ant) {
-        return orderList.size() - ant.getOrderList().size();
+        return (int) ((orderList.size() * 100 + totalCost) - (ant.getOrderList().size() * 100 + ant.getTotalCost()));
     }
 }

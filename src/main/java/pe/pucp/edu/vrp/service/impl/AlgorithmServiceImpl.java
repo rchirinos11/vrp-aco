@@ -1,11 +1,8 @@
 package pe.pucp.edu.vrp.service.impl;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import pe.pucp.edu.vrp.algorithm.Depot;
-import pe.pucp.edu.vrp.algorithm.Node;
-import pe.pucp.edu.vrp.algorithm.Order;
-import pe.pucp.edu.vrp.algorithm.Problem;
-import pe.pucp.edu.vrp.algorithm.Truck;
+import pe.pucp.edu.vrp.algorithm.*;
 import pe.pucp.edu.vrp.request.AlgorithmRequest;
 import pe.pucp.edu.vrp.request.OrderRequest;
 import pe.pucp.edu.vrp.request.TruckRequest;
@@ -14,6 +11,7 @@ import pe.pucp.edu.vrp.response.DepotResponse;
 import pe.pucp.edu.vrp.response.NodeResponse;
 import pe.pucp.edu.vrp.response.TruckResponse;
 import pe.pucp.edu.vrp.service.AlgorithmService;
+import pe.pucp.edu.vrp.util.Problem;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,7 +20,7 @@ import java.util.Objects;
 @Service
 public class AlgorithmServiceImpl implements AlgorithmService {
     @Override
-    public AlgorithmResponse routeTrucks(AlgorithmRequest request) {
+    public ResponseEntity<AlgorithmResponse> routeTrucks(AlgorithmRequest request) {
         Problem.resetDepots();
 
         List<Order> orderList = new ArrayList<>();
@@ -37,9 +35,16 @@ public class AlgorithmServiceImpl implements AlgorithmService {
 
         List<Depot> depotList = Problem.depotList;
         for (TruckRequest truck : request.getTruckList()) {
-            Depot depot = depotList.stream().filter(d -> d.getUbigeo().equals(truck.getDepot())).findFirst().orElse(null);
-            if (Objects.nonNull(depot))
-                depot.getCurrentFleet().add(new Truck(truck.getId(), truck.getMaxLoad()));
+            Depot depot = depotList.stream().filter(d -> d.getUbigeo().equals(truck.getUbigeo())).findFirst().orElse(null);
+            if (Objects.nonNull(depot)) {
+                Node n = findNode(nodeList, truck.getUbigeo());
+                if (Objects.isNull(n)) {
+                    return ResponseEntity.badRequest().body(null);
+                }
+                depot.getCurrentFleet().add(new Truck(truck.getId(), n.getMatrixIndex(), truck.getMaxLoad()));
+            } else if (!assignTruck(nodeList, depotList, truck, Problem.mapGraph)) {
+                return ResponseEntity.badRequest().body(null);
+            }
         }
 
         long start = System.currentTimeMillis();
@@ -51,16 +56,49 @@ public class AlgorithmServiceImpl implements AlgorithmService {
         List<DepotResponse> depotResponseList = new ArrayList<>();
         for (Depot d : depotList) {
             List<TruckResponse> truckResponseList = new ArrayList<>();
+            double cost = 0.0;
+            int load = 0;
             for (Truck t : d.getCurrentFleet()) {
                 List<NodeResponse> nodeResponseList = new ArrayList<>();
                 for (Node n : t.getNodeRoute())
                     nodeResponseList.add(NodeResponse.builder().ubigeo(n.getUbigeo()).build());
 
                 truckResponseList.add(TruckResponse.builder().id(t.getId()).nodeRoute(nodeResponseList).load(t.getCurrentLoad())
-                        .cost(0.0).build());
+                        .cost(t.getCost()).build());
+                cost += t.getCost();
+                load += t.getCurrentLoad();
             }
-            depotResponseList.add(DepotResponse.builder().ubigeo(d.getUbigeo()).truckList(truckResponseList).city(d.getCity()).build());
+            depotResponseList.add(DepotResponse.builder().ubigeo(d.getUbigeo()).truckList(truckResponseList).city(d.getCity())
+                    .depotCost(cost).packagesRouted(load).build());
         }
-        return AlgorithmResponse.builder().depotList(depotResponseList).build();
+        return ResponseEntity.ok().body(AlgorithmResponse.builder().depotList(depotResponseList).build());
+    }
+
+    private boolean assignTruck(List<Node> nodeList, List<Depot> depotList, TruckRequest truck, Matrix[][] mapGraph) {
+        double minLength = 9999.9;
+        String ubigeo = truck.getUbigeo();
+        Node node = nodeList.stream().filter(n -> n.getUbigeo().equals(truck.getUbigeo())).findFirst().orElse(null);
+        if (Objects.isNull(node))
+            return false;
+
+        int x = -1;
+        for (int i = 0; i < depotList.size(); i++) {
+            Matrix matrixVal = mapGraph[depotList.get(i).getMatrixIndex()][node.getMatrixIndex()];
+            if (matrixVal.getHeuristicValue() < minLength && matrixVal.getHeuristicValue() > 0) {
+                minLength = matrixVal.getHeuristicValue();
+                x = i;
+            }
+        }
+        if (x != -1) {
+            Node n = findNode(nodeList, ubigeo);
+            if (Objects.isNull(n))
+                return false;
+            depotList.get(x).getCurrentFleet().add(new Truck(truck.getId(), n.getMatrixIndex(), truck.getMaxLoad()));
+        }
+        return true;
+    }
+
+    private Node findNode(List<Node> nodeList, String ubigeo) {
+        return nodeList.stream().filter(node -> node.getUbigeo().equals(ubigeo)).findFirst().orElse(null);
     }
 }

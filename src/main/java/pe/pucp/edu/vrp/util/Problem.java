@@ -1,4 +1,4 @@
-package pe.pucp.edu.vrp.algorithm;
+package pe.pucp.edu.vrp.util;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -6,14 +6,15 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.core.io.ClassPathResource;
+import pe.pucp.edu.vrp.algorithm.*;
+import pe.pucp.edu.vrp.request.TruckRequest;
 import pe.pucp.edu.vrp.util.Region;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Scanner;
 
 /**
@@ -65,7 +66,7 @@ public class Problem {
         nodeList = new ArrayList<>();
         depotList = new ArrayList<>();
 
-        File file = new ClassPathResource("inf226.oficinas.txt").getFile();
+        File file = new File("inf226.oficinas.txt");
         Scanner sc = new Scanner(file);
 
         //Carga de archivos al objeto Oficinas y Almacenes
@@ -94,7 +95,7 @@ public class Problem {
 
     private static void readConnections() throws IOException {
         connectionList = new ArrayList<>();
-        File file = new ClassPathResource("inf226.tramos.v.2.0.txt").getFile();
+        File file = new File("inf226.tramos.v.2.0.txt");
         Scanner sc = new Scanner(file);
         int x, y;
         while (sc.hasNextLine()) {
@@ -115,29 +116,6 @@ public class Problem {
             d.getCurrentFleet().clear();
         }
     }
-    private void readOrderFile() throws IOException {
-        File file = new ClassPathResource("inf226.ventas202205.txt").getFile();
-        Depot depot;
-        Node node;
-        int x = 0;
-
-        String line;
-        String[] splittedLine;
-        BufferedReader br = new BufferedReader(new FileReader(file));
-        while ((line = br.readLine()) != null) {
-            if (x == 50)
-                break;
-            splittedLine = line.split(",");
-            int demand = Integer.parseInt(splittedLine[2].trim());
-            splittedLine = splittedLine[1].trim().split(" =>  ");
-            String depotUbigeo = splittedLine[0];
-            String nodeUbigeo = splittedLine[1];
-            depot = depotList.stream().filter(d -> d.getUbigeo().equals(depotUbigeo)).findFirst().orElse(null);
-            node = nodeList.stream().filter(n -> n.getUbigeo().equals(nodeUbigeo)).findFirst().orElse(null);
-            depot.getDepotOrders().add(new Order(x++, node, demand));
-        }
-
-    }
 
     public static void assignClosest(Order order) {
         double minLength = 9999.9;
@@ -151,23 +129,6 @@ public class Problem {
         }
         if (x != -1) {
             depotList.get(x).getDepotOrders().add(order);
-        }
-    }
-
-    private void findClosest(List<Order> orderList) {
-        for (Order order : orderList) {
-            double minLength = 999.9;
-            int x = -1;
-            for (int i = 0; i < depotList.size(); i++) {
-                Matrix matrixVal = mapGraph[depotList.get(i).getMatrixIndex()][order.getDestination().getMatrixIndex()];
-                if (matrixVal.getHeuristicValue() < minLength && matrixVal.getHeuristicValue() > 0) {
-                    minLength = matrixVal.getHeuristicValue();
-                    x = i;
-                }
-            }
-            if (x != -1) {
-                depotList.get(x).getDepotOrders().add(order);
-            }
         }
     }
 

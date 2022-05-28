@@ -13,8 +13,8 @@ import lombok.Setter;
 @Builder
 public class TruckRequest {
     private Integer id;
-    private String depot;
+    private String ubigeo;
+    private double currentLoad;
     private double maxLoad;
     private char type;
-    private boolean condition;
 }

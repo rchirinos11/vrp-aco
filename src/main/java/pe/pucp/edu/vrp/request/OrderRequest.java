@@ -15,4 +15,5 @@ public class OrderRequest {
     private Integer id;
     private String ubigeo;
     private int packages;
+    private double remainingTime;
 }

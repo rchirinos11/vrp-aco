@@ -19,6 +19,6 @@ public class AlgorithmController {
 
     @PostMapping("/route")
     public ResponseEntity<AlgorithmResponse> route(@RequestBody AlgorithmRequest request) {
-        return ResponseEntity.ok().body(algorithmService.routeTrucks(request));
+        return algorithmService.routeTrucks(request);
     }
 }

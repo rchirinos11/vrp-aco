@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Stream;
 
 @Getter
 @Setter
@@ -47,12 +48,10 @@ public class Depot extends Node {
 
     private void removeOrders(List<Node> route, List<Order> orderList) {
         if (route.isEmpty()) return;
-        boolean removed = false;
         for (Node node : route) {
             Order order = orderList.stream().filter(o -> node == o.getDestination()).findFirst().orElse(null);
             if (Objects.nonNull(order)) {
                 orderList.remove(order);
-                removed = true;
             }
         }
     }

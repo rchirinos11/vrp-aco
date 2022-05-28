@@ -34,8 +34,9 @@ public class SuperColony implements Comparable<SuperColony> {
             List<Node> route = antColony.getRoute(matrixIndex, mapGraph, nodeList, depotOrders, connectionList, truck.getMaxLoad());
             if (removeOrders(route, depotOrders) && route.size() > 1) {
                 truck.setNodeRoute(route);
+                truck.setCost(antColony.getColony()[0].getTotalCost());
                 truck.setCurrentLoad(antColony.getColony()[0].getCurrentLoad());
-                cost += antColony.getColony()[0].getTotalCost();
+                cost += truck.getCost();
             }
         }
         missingRouted = depotOrders.size();
@@ -56,6 +57,6 @@ public class SuperColony implements Comparable<SuperColony> {
 
     @Override
     public int compareTo(SuperColony sc) {
-        return missingRouted - sc.getMissingRouted();
+        return (int) ((missingRouted * 100 + cost) - (sc.getMissingRouted() * 100 + sc.getCost()));
     }
 }

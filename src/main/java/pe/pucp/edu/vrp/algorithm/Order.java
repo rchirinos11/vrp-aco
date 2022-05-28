@@ -13,6 +13,7 @@ public class Order {
     private int orderId;
     private Node destination;
     private int packageAmount;
+    private double remainingTime;
 
     @Override
     public String toString() {

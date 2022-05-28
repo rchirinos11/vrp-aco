@@ -2,7 +2,7 @@ package pe.pucp.edu.vrp;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import pe.pucp.edu.vrp.algorithm.Problem;
+import pe.pucp.edu.vrp.util.Problem;
 
 
 @SpringBootApplication
