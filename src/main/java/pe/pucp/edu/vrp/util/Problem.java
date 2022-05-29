@@ -5,16 +5,16 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.springframework.core.io.ClassPathResource;
-import pe.pucp.edu.vrp.algorithm.*;
-import pe.pucp.edu.vrp.request.TruckRequest;
-import pe.pucp.edu.vrp.util.Region;
+import pe.pucp.edu.vrp.algorithm.Connection;
+import pe.pucp.edu.vrp.algorithm.Depot;
+import pe.pucp.edu.vrp.algorithm.Matrix;
+import pe.pucp.edu.vrp.algorithm.Node;
+import pe.pucp.edu.vrp.algorithm.Order;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Scanner;
 
 /**
@@ -57,7 +57,7 @@ public class Problem {
     public static double routeOrders() {
         double totalTraveled = 0;
         for (Depot depot : depotList) {
-            totalTraveled += depot.depotRouting(mapGraph, nodeList, connectionList);
+            totalTraveled += depot.depotRouting(mapGraph, nodeList);
         }
         return totalTraveled;
     }
@@ -106,7 +106,7 @@ public class Problem {
             x = n.getMatrixIndex();
             n = nodeList.stream().filter(node -> node.getUbigeo().equals(values[1])).findFirst().orElse(null);
             y = n.getMatrixIndex();
-            connectionList.add(new Connection(x, y));
+            connectionList.add(new Connection(x, y, false));
         }
     }
 
@@ -130,6 +130,16 @@ public class Problem {
         if (x != -1) {
             depotList.get(x).getDepotOrders().add(order);
         }
+    }
+
+    public static boolean isBlocked(int x, int y) {
+        for (Connection cn : connectionList) {
+            if (cn.getXIndex() == x && cn.getYIndex() == y && !cn.isBlocked())
+                return false;
+            else if (cn.getXIndex() == x && cn.getYIndex() == y && cn.isBlocked())
+                return true;
+        }
+        return true;
     }
 
     public static float invSqrt(float number) {

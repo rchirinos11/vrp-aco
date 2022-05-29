@@ -10,4 +10,5 @@ import lombok.*;
 public class Connection {
     private int xIndex;
     private int yIndex;
+    private boolean blocked;
 }

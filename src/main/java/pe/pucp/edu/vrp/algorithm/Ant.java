@@ -9,6 +9,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import pe.pucp.edu.vrp.util.Constant;
+import pe.pucp.edu.vrp.util.Problem;
 import pe.pucp.edu.vrp.util.Region;
 import pe.pucp.edu.vrp.util.Speed;
 
@@ -23,20 +24,18 @@ import pe.pucp.edu.vrp.util.Speed;
 public class Ant implements Comparable<Ant> {
     private List<Node> visitedNodes;
     private List<Node> nodeList;
-    private List<Connection> connectionList;
     private List<Order> orderList;
     private double totalCost;
     private double currentLoad;
     private int start;
 
 
-    public Ant(int x, List<Node> nodeList, List<Connection> connectionList, List<Order> orderList) {
+    public Ant(int x, List<Node> nodeList, List<Order> orderList) {
         visitedNodes = new ArrayList<>();
         totalCost = 0;
         currentLoad = 0;
         start = x;
         this.nodeList = nodeList;
-        this.connectionList = connectionList;
         this.orderList = new ArrayList<>(orderList);
     }
 
@@ -58,7 +57,7 @@ public class Ant implements Comparable<Ant> {
             visitedNodes.add(nextNode);
             if (Objects.nonNull(order) && Objects.nonNull(findNode(visitedNodes, nextNode.getMatrixIndex()))) {
                 if (order.getPackageAmount() + currentLoad > maxLoad ||
-                        order.getDestination().getRegion().getMaxHours() < totalCost + mapGraph[xIndex][yIndex].getHeuristicValue() / speed) {
+                        order.getRemainingTime() < totalCost + mapGraph[xIndex][yIndex].getHeuristicValue() / speed) {
                     visitedNodes.remove(nextNode);
                     break;
                 } else {
@@ -115,21 +114,13 @@ public class Ant implements Comparable<Ant> {
         double denominator = 0.0;
         double speed;
         for (int y = 0; y < mapGraph.length; y++) {
-            if (!isBlocked(x, y) && Objects.isNull(findNode(visitedNodes, y))) {
+            if (!Problem.isBlocked(x, y) && Objects.isNull(findNode(visitedNodes, y))) {
                 speed = Speed.valueOf(nodeList.get(x).getRegion().name() + nodeList.get(y).getRegion().name()).getSpeed();
                 probList.set(y, getNumerator(mapGraph[x][y], nodeList.get(y)) / speed);
                 denominator += probList.get(y);
             }
         }
         return denominator;
-    }
-
-    private boolean isBlocked(int x, int y) {
-        for (Connection cn : connectionList) {
-            if (cn.getXIndex() == x && cn.getYIndex() == y)
-                return false;
-        }
-        return true;
     }
 
     private Double getNumerator(Matrix values, Node n) {
@@ -140,9 +131,9 @@ public class Ant implements Comparable<Ant> {
             numerator *= Math.pow(1 / values.getHeuristicValue(), Constant.BETA);
             numerator *= Math.pow(1 / (double) n.getRegion().getMaxHours(), Constant.BETA);
             if (Objects.nonNull(findOrder(orderList, n)))
-                numerator *= 2;
+                numerator *= 3;
             else
-                numerator *= 1;
+                numerator *= 0.5;
         }
         return numerator;
     }

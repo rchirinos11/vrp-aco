@@ -1,10 +1,7 @@
 package pe.pucp.edu.vrp.request;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.*;
 
 @Getter
 @Setter
@@ -12,8 +9,20 @@ import lombok.Setter;
 @AllArgsConstructor
 @Builder
 public class OrderRequest {
+
+    @NonNull
+    @JsonProperty("id")
     private Integer id;
+
+    @NonNull
+    @JsonProperty("ubigeo")
     private String ubigeo;
+
+    @NonNull
+    @JsonProperty("packages")
     private int packages;
+
+    @NonNull
+    @JsonProperty("remainingTime")
     private double remainingTime;
 }

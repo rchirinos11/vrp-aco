@@ -7,7 +7,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import pe.pucp.edu.vrp.request.AlgorithmRequest;
-import pe.pucp.edu.vrp.response.AlgorithmResponse;
 import pe.pucp.edu.vrp.service.AlgorithmService;
 
 @RestController
@@ -18,7 +17,7 @@ public class AlgorithmController {
     private AlgorithmService algorithmService;
 
     @PostMapping("/route")
-    public ResponseEntity<AlgorithmResponse> route(@RequestBody AlgorithmRequest request) {
+    public ResponseEntity<?> route(@RequestBody AlgorithmRequest request) {
         return algorithmService.routeTrucks(request);
     }
 }

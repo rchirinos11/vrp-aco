@@ -2,7 +2,11 @@ package pe.pucp.edu.vrp.service.impl;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import pe.pucp.edu.vrp.algorithm.*;
+import pe.pucp.edu.vrp.algorithm.Depot;
+import pe.pucp.edu.vrp.algorithm.Matrix;
+import pe.pucp.edu.vrp.algorithm.Node;
+import pe.pucp.edu.vrp.algorithm.Order;
+import pe.pucp.edu.vrp.algorithm.Truck;
 import pe.pucp.edu.vrp.request.AlgorithmRequest;
 import pe.pucp.edu.vrp.request.OrderRequest;
 import pe.pucp.edu.vrp.request.TruckRequest;
@@ -20,15 +24,17 @@ import java.util.Objects;
 @Service
 public class AlgorithmServiceImpl implements AlgorithmService {
     @Override
-    public ResponseEntity<AlgorithmResponse> routeTrucks(AlgorithmRequest request) {
+    public ResponseEntity<?> routeTrucks(AlgorithmRequest request) {
         Problem.resetDepots();
 
         List<Order> orderList = new ArrayList<>();
         List<Node> nodeList = Problem.nodeList;
-        for (OrderRequest order : request.getOrderList()) {
-            Node node = nodeList.stream().filter(n -> order.getUbigeo().equals(n.getUbigeo())).findFirst().orElse(null);
+        for (OrderRequest requestOrder : request.getOrderList()) {
+            Node node = nodeList.stream().filter(n -> requestOrder.getUbigeo().equals(n.getUbigeo())).findFirst().orElse(null);
             if (Objects.nonNull(node)) {
-                orderList.add(Order.builder().orderId(order.getId()).destination(node).packageAmount(order.getPackages()).build());
+                Order order = Order.builder().orderId(requestOrder.getId()).destination(node).packageAmount(requestOrder.getPackages())
+                        .remainingTime(requestOrder.getRemainingTime()).build();
+                orderList.add(order);
                 Problem.assignClosest(orderList.get(orderList.size() - 1));
             }
         }
@@ -39,11 +45,11 @@ public class AlgorithmServiceImpl implements AlgorithmService {
             if (Objects.nonNull(depot)) {
                 Node n = findNode(nodeList, truck.getUbigeo());
                 if (Objects.isNull(n)) {
-                    return ResponseEntity.badRequest().body(null);
+                    return ResponseEntity.badRequest().body(new Exception("No se encontro el nodo del almacen"));
                 }
                 depot.getCurrentFleet().add(new Truck(truck.getId(), n.getMatrixIndex(), truck.getMaxLoad()));
             } else if (!assignTruck(nodeList, depotList, truck, Problem.mapGraph)) {
-                return ResponseEntity.badRequest().body(null);
+                return ResponseEntity.badRequest().body(new Exception("No se encontro el Ubigeo del camion"));
             }
         }
 
@@ -93,7 +99,7 @@ public class AlgorithmServiceImpl implements AlgorithmService {
             Node n = findNode(nodeList, ubigeo);
             if (Objects.isNull(n))
                 return false;
-            depotList.get(x).getCurrentFleet().add(new Truck(truck.getId(), n.getMatrixIndex(), truck.getMaxLoad()));
+            depotList.get(x).getCurrentFleet().add(0, new Truck(truck.getId(), n.getMatrixIndex(), truck.getMaxLoad()));
         }
         return true;
     }

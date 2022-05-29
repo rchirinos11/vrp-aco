@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Stream;
 
 @Getter
 @Setter
@@ -23,24 +22,23 @@ public class Depot extends Node {
         currentFleet = new ArrayList<>();
     }
 
-    public double depotRouting(Matrix[][] mapGraph, List<Node> nodeList, List<Connection> connectionList) {
+    public double depotRouting(Matrix[][] mapGraph, List<Node> nodeList) {
         if (depotOrders.isEmpty()) return 0;
 
         System.out.println("\nPerforming routing for depot: " + getCity() + "\nOrders: " + depotOrders);
         SuperColony[] superColonyList = new SuperColony[Constant.ITERATIONS];
         for (int i = 0; i < Constant.ITERATIONS; i++) {
             SuperColony sc = new SuperColony(currentFleet, depotOrders);
-            sc.routeTrucks(getMatrixIndex(), mapGraph, nodeList, connectionList);
+            sc.routeTrucks(mapGraph, nodeList);
             superColonyList[i] = sc;
         }
         Arrays.sort(superColonyList);
         currentFleet = superColonyList[0].getTruckList();
-        System.out.println();
         for (Truck t : currentFleet) {
             removeOrders(t.getNodeRoute(), depotOrders);
         }
         if (!depotOrders.isEmpty()) {
-            System.out.println("\nError, orders missing to route: " + depotOrders);
+            System.out.println("Error, orders missing to route: " + depotOrders);
         }
         System.out.printf("Total depot cost: %3.2f h\n", superColonyList[0].getCost());
         return superColonyList[0].getCost();
@@ -55,4 +53,5 @@ public class Depot extends Node {
             }
         }
     }
+
 }

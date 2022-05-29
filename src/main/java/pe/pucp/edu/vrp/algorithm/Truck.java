@@ -23,6 +23,8 @@ public class Truck {
     private boolean working;
 
     public Truck(int id, int start, double max) {
+        this.id = id;
+        this.start = start;
         currentLoad = 0.0;
         nodeRoute = new ArrayList<>();
         maxLoad = max;

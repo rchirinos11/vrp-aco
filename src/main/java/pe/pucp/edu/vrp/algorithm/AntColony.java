@@ -24,21 +24,15 @@ public class AntColony {
         colonySize = n;
     }
 
-    public List<Node> getRoute(int start, Matrix[][] mapGraph, List<Node> nodeList, List<Order> orderList, List<Connection> connectionList, double maxLoad) {
-        work(start, mapGraph, nodeList, orderList, connectionList, maxLoad);
+    public List<Node> getRoute(int start, Matrix[][] mapGraph, List<Node> nodeList, List<Order> orderList, double maxLoad) {
+        work(start, mapGraph, nodeList, orderList, maxLoad);
         return colony[0].getVisitedNodes();
     }
 
-    public void displayColony() {
-        for (int i = 0; i < colonySize; i++) {
-            System.out.println(colony[i].getVisitedNodes() + "\nCost: " + colony[i].getTotalCost());
-        }
-    }
-
-    private void work(int start, Matrix[][] mapGraph, List<Node> nodeList, List<Order> orderList, List<Connection> connectionList, double maxLoad) {
+    private void work(int start, Matrix[][] mapGraph, List<Node> nodeList, List<Order> orderList, double maxLoad) {
         int i;
         for (i = 0; i < colonySize; i++) {
-            colony[i] = new Ant(start, nodeList, connectionList, orderList);
+            colony[i] = new Ant(start, nodeList, orderList);
             colony[i].work(mapGraph, maxLoad);
         }
         Arrays.sort(colony);
