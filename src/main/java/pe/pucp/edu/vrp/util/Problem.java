@@ -122,7 +122,7 @@ public class Problem {
         int x = -1;
         for (int i = 0; i < depotList.size(); i++) {
             Matrix matrixVal = mapGraph[depotList.get(i).getMatrixIndex()][order.getDestination().getMatrixIndex()];
-            if (matrixVal.getHeuristicValue() < minLength && matrixVal.getHeuristicValue() > 0) {
+            if (!depotList.get(i).getCurrentFleet().isEmpty() && matrixVal.getHeuristicValue() < minLength && matrixVal.getHeuristicValue() > 0) {
                 minLength = matrixVal.getHeuristicValue();
                 x = i;
             }

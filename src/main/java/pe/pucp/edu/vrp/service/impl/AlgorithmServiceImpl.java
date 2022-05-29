@@ -27,18 +27,7 @@ public class AlgorithmServiceImpl implements AlgorithmService {
     public ResponseEntity<?> routeTrucks(AlgorithmRequest request) {
         Problem.resetDepots();
 
-        List<Order> orderList = new ArrayList<>();
         List<Node> nodeList = Problem.nodeList;
-        for (OrderRequest requestOrder : request.getOrderList()) {
-            Node node = nodeList.stream().filter(n -> requestOrder.getUbigeo().equals(n.getUbigeo())).findFirst().orElse(null);
-            if (Objects.nonNull(node)) {
-                Order order = Order.builder().orderId(requestOrder.getId()).destination(node).packageAmount(requestOrder.getPackages())
-                        .remainingTime(requestOrder.getRemainingTime()).build();
-                orderList.add(order);
-                Problem.assignClosest(orderList.get(orderList.size() - 1));
-            }
-        }
-
         List<Depot> depotList = Problem.depotList;
         for (TruckRequest truck : request.getTruckList()) {
             Depot depot = depotList.stream().filter(d -> d.getUbigeo().equals(truck.getUbigeo())).findFirst().orElse(null);
@@ -50,6 +39,17 @@ public class AlgorithmServiceImpl implements AlgorithmService {
                 depot.getCurrentFleet().add(new Truck(truck.getId(), n.getMatrixIndex(), truck.getMaxLoad()));
             } else if (!assignTruck(nodeList, depotList, truck, Problem.mapGraph)) {
                 return ResponseEntity.badRequest().body(new Exception("No se encontro el Ubigeo del camion"));
+            }
+        }
+
+        List<Order> orderList = new ArrayList<>();
+        for (OrderRequest requestOrder : request.getOrderList()) {
+            Node node = nodeList.stream().filter(n -> requestOrder.getUbigeo().equals(n.getUbigeo())).findFirst().orElse(null);
+            if (Objects.nonNull(node)) {
+                Order order = Order.builder().orderId(requestOrder.getId()).destination(node).packageAmount(requestOrder.getPackages())
+                        .remainingTime(requestOrder.getRemainingTime()).build();
+                orderList.add(order);
+                Problem.assignClosest(orderList.get(orderList.size() - 1));
             }
         }
 
