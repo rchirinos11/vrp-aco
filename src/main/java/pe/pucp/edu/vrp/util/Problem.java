@@ -15,6 +15,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Scanner;
 
 /**
@@ -54,12 +55,15 @@ public class Problem {
         readConnections();
     }
 
-    public static double routeOrders() {
-        double totalTraveled = 0;
+    public static List<Order> routeOrders() {
+        List<Order> missingOrders = new ArrayList<>();
         for (Depot depot : depotList) {
-            totalTraveled += depot.depotRouting(mapGraph, nodeList);
+            List<Order> orderList = depot.depotRouting(mapGraph, nodeList);
+            if (Objects.nonNull(orderList) && !orderList.isEmpty()) {
+                missingOrders.addAll(depot.getDepotOrders());
+            }
         }
-        return totalTraveled;
+        return missingOrders;
     }
 
     private static int readOffices() throws IOException {

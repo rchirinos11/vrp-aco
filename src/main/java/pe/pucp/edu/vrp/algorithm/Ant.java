@@ -54,11 +54,9 @@ public class Ant implements Comparable<Ant> {
             nextNode = nodeList.get(yIndex);
             order = findOrder(orderList, nextNode);
             speed = Speed.valueOf(nextNode.getRegion().name() + nodeList.get(xIndex).getRegion().name()).getSpeed();
-            visitedNodes.add(nextNode);
-            if (Objects.nonNull(order) && Objects.nonNull(findNode(visitedNodes, nextNode.getMatrixIndex()))) {
+            if (Objects.nonNull(order) && Objects.isNull(findNode(visitedNodes, nextNode.getMatrixIndex()))) {
                 if (order.getPackageAmount() + currentLoad > maxLoad ||
                         order.getRemainingTime() < totalCost + mapGraph[xIndex][yIndex].getHeuristicValue() / speed) {
-                    visitedNodes.remove(nextNode);
                     break;
                 } else {
                     count = 0;
@@ -68,6 +66,7 @@ public class Ant implements Comparable<Ant> {
             } else if (Objects.isNull(order)) {
                 count++;
             }
+            visitedNodes.add(nextNode);
             totalCost += (mapGraph[xIndex][yIndex].getHeuristicValue() / speed);
             if (xIndex != yIndex) totalCost += 1;
             localUpdate(mapGraph[xIndex][yIndex]);

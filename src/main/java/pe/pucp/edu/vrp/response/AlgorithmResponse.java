@@ -15,6 +15,7 @@ import java.util.List;
 @Builder
 public class AlgorithmResponse {
     private List<DepotResponse> depotList;
+    private List<NodeResponse> missingOrderList;
 }
 
 

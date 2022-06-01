@@ -2,11 +2,7 @@ package pe.pucp.edu.vrp.service.impl;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import pe.pucp.edu.vrp.algorithm.Depot;
-import pe.pucp.edu.vrp.algorithm.Matrix;
-import pe.pucp.edu.vrp.algorithm.Node;
-import pe.pucp.edu.vrp.algorithm.Order;
-import pe.pucp.edu.vrp.algorithm.Truck;
+import pe.pucp.edu.vrp.algorithm.*;
 import pe.pucp.edu.vrp.request.AlgorithmRequest;
 import pe.pucp.edu.vrp.request.OrderRequest;
 import pe.pucp.edu.vrp.request.TruckRequest;
@@ -54,11 +50,14 @@ public class AlgorithmServiceImpl implements AlgorithmService {
         }
 
         long start = System.currentTimeMillis();
-        double traveled = Problem.routeOrders();
+        List<Order> missingOrders = Problem.routeOrders();
         long finish = System.currentTimeMillis();
         System.out.println("\nAlgorithm time: " + (finish - start) + " ms");
-        System.out.printf("Total time traveled: %3.2f h\n", traveled);
 
+        return createResponse(depotList, missingOrders);
+    }
+
+    private ResponseEntity<AlgorithmResponse> createResponse(List<Depot> depotList, List<Order> orderList) {
         List<DepotResponse> depotResponseList = new ArrayList<>();
         for (Depot d : depotList) {
             List<TruckResponse> truckResponseList = new ArrayList<>();
@@ -77,7 +76,13 @@ public class AlgorithmServiceImpl implements AlgorithmService {
             depotResponseList.add(DepotResponse.builder().ubigeo(d.getUbigeo()).truckList(truckResponseList).city(d.getCity())
                     .depotCost(cost).packagesRouted(load).build());
         }
-        return ResponseEntity.ok().body(AlgorithmResponse.builder().depotList(depotResponseList).build());
+
+        List<NodeResponse> missingOrderList = new ArrayList<>();
+        for (Order order : orderList) {
+            NodeResponse node = NodeResponse.builder().idOrder(order.getOrderId()).ubigeo(order.getDestination().getUbigeo()).build();
+            missingOrderList.add(node);
+        }
+        return ResponseEntity.ok().body(new AlgorithmResponse(depotResponseList, missingOrderList));
     }
 
     private boolean assignTruck(List<Node> nodeList, List<Depot> depotList, TruckRequest truck, Matrix[][] mapGraph) {

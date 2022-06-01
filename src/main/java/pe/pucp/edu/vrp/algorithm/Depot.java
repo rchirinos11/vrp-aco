@@ -3,6 +3,7 @@ package pe.pucp.edu.vrp.algorithm;
 import lombok.Getter;
 import lombok.Setter;
 import pe.pucp.edu.vrp.util.Constant;
+import pe.pucp.edu.vrp.util.Problem;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -22,8 +23,8 @@ public class Depot extends Node {
         currentFleet = new ArrayList<>();
     }
 
-    public double depotRouting(Matrix[][] mapGraph, List<Node> nodeList) {
-        if (depotOrders.isEmpty()) return 0;
+    public List<Order> depotRouting(Matrix[][] mapGraph, List<Node> nodeList) {
+        if (depotOrders.isEmpty()) return null;
 
         System.out.println("\nPerforming routing for depot: " + getCity() + "\nOrders: " + depotOrders);
         SuperColony[] superColonyList = new SuperColony[Constant.ITERATIONS];
@@ -34,14 +35,15 @@ public class Depot extends Node {
         }
         Arrays.sort(superColonyList);
         currentFleet = superColonyList[0].getTruckList();
+        List<Order> copyList = new ArrayList<>(depotOrders);
         for (Truck t : currentFleet) {
-            removeOrders(t.getNodeRoute(), depotOrders);
+            removeOrders(t.getNodeRoute(), copyList);
         }
-        if (!depotOrders.isEmpty()) {
-            System.out.println("Error, orders missing to route: " + depotOrders);
+        if (!copyList.isEmpty()) {
+            System.out.println("Error, orders missing to route: " + copyList);
         }
         System.out.printf("Total depot cost: %3.2f h\n", superColonyList[0].getCost());
-        return superColonyList[0].getCost();
+        return copyList;
     }
 
     private void removeOrders(List<Node> route, List<Order> orderList) {
@@ -53,5 +55,4 @@ public class Depot extends Node {
             }
         }
     }
-
 }
