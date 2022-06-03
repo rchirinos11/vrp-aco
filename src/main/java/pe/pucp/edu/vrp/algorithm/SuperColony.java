@@ -33,10 +33,12 @@ public class SuperColony implements Comparable<SuperColony> {
             Truck truck = truckList.get(i++);
             List<Node> route = antColony.getRoute(truck.getStart(), mapGraph, nodeList, depotOrders, truck.getMaxLoad());
             if (removeOrders(route, depotOrders) && route.size() > 1) {
-                truck.setNodeRoute(route);
                 truck.setCost(antColony.getColony()[0].getTotalCost());
                 truck.setCurrentLoad(antColony.getColony()[0].getCurrentLoad());
                 cost += truck.getCost();
+                List<Node> routeBack = antColony.routeBack(route.get(route.size() - 1).getMatrixIndex(), mapGraph, nodeList);
+                route.addAll(routeBack);
+                truck.setNodeRoute(route);
             }
         }
         missingRouted = depotOrders.size();

@@ -19,11 +19,11 @@ import pe.pucp.edu.vrp.util.Speed;
  */
 @Getter
 @Setter
-@AllArgsConstructor
 @ToString
 public class Ant implements Comparable<Ant> {
     private List<Node> visitedNodes;
     private List<Node> nodeList;
+    private List<Double> costList;
     private List<Order> orderList;
     private double totalCost;
     private double currentLoad;
@@ -36,17 +36,28 @@ public class Ant implements Comparable<Ant> {
         currentLoad = 0;
         start = x;
         this.nodeList = nodeList;
+        costList = new ArrayList<>();
         this.orderList = new ArrayList<>(orderList);
+    }
+
+    public Ant(int x, List<Node> nodeList) {
+        visitedNodes = new ArrayList<>();
+        totalCost = 0;
+        start = x;
+        orderList = new ArrayList<>();
+        costList = new ArrayList<>();
+        this.nodeList = nodeList;
     }
 
     public void work(Matrix[][] mapGraph, double maxLoad) {
         int xIndex = start, yIndex, count = 0;
         Node nextNode = nodeList.get(start);
         Order order;
-        double speed;
+        double speed, cost;
 
         visitedNodes.add(nextNode);
-        while(true) {
+        costList.add(0.0);
+        while (true) {
             yIndex = chooseNext(mapGraph, xIndex);
             if (yIndex == -1) {
                 break;
@@ -66,8 +77,10 @@ public class Ant implements Comparable<Ant> {
             } else if (Objects.isNull(order)) {
                 count++;
             }
+            cost = mapGraph[xIndex][yIndex].getHeuristicValue() / speed;
             visitedNodes.add(nextNode);
-            totalCost += (mapGraph[xIndex][yIndex].getHeuristicValue() / speed);
+            costList.add(cost);
+            totalCost += cost;
             if (xIndex != yIndex) totalCost += 1;
             localUpdate(mapGraph[xIndex][yIndex]);
             xIndex = yIndex;
@@ -77,10 +90,42 @@ public class Ant implements Comparable<Ant> {
             }
         }
 
-        for (int i = visitedNodes.size() -1 ; count > 0; i--) {
+        for (int i = visitedNodes.size() - 1; count > 0; i--) {
             visitedNodes.remove(i);
+            cost = costList.get(i);
+            totalCost -= cost;
             count--;
         }
+    }
+
+    public void routeBack(Matrix[][] mapGraph) {
+        int xIndex = start, yIndex;
+        Node nextNode;
+        double speed;
+
+        while (true) {
+            yIndex = chooseNext(mapGraph, xIndex);
+            if (yIndex == -1) {
+                break;
+            }
+            nextNode = nodeList.get(yIndex);
+            speed = Speed.valueOf(nextNode.getRegion().name() + nodeList.get(xIndex).getRegion().name()).getSpeed();
+            if (Objects.isNull(findNode(visitedNodes, nextNode.getMatrixIndex()))) {
+                visitedNodes.add(nextNode);
+                totalCost += (mapGraph[xIndex][yIndex].getHeuristicValue() / speed);
+                if (xIndex != yIndex) totalCost += 1;
+                localUpdate(mapGraph[xIndex][yIndex]);
+                xIndex = yIndex;
+            }
+
+            if (totalCost > Region.SELVA.getMaxHours() || isDepot(nextNode)) {
+                break;
+            }
+        }
+    }
+
+    private boolean isDepot(Node node) {
+        return node.getCity().equals("LIMA") || node.getCity().equals("TRUJILLO") || node.getCity().equals("AREQUIPA");
     }
 
     private int chooseNext(Matrix[][] mapGraph, int x) {
