@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -54,6 +53,7 @@ public class Ant implements Comparable<Ant> {
         Node nextNode = nodeList.get(start);
         Order order;
         double speed, cost;
+        boolean existsOrder;
 
         visitedNodes.add(nextNode);
         costList.add(0.0);
@@ -63,9 +63,10 @@ public class Ant implements Comparable<Ant> {
                 break;
             }
             nextNode = nodeList.get(yIndex);
-            order = findOrder(orderList, nextNode);
+            order = findOrder(nextNode);
             speed = Speed.valueOf(nextNode.getRegion().name() + nodeList.get(xIndex).getRegion().name()).getSpeed();
-            if (Objects.nonNull(order) && Objects.isNull(findNode(visitedNodes, nextNode.getMatrixIndex()))) {
+            existsOrder = Objects.nonNull(order);
+            if (existsOrder && notExistsNode(nextNode.getMatrixIndex())) {
                 if (order.getPackageAmount() + currentLoad > maxLoad ||
                         order.getRemainingTime() < totalCost + mapGraph[xIndex][yIndex].getHeuristicValue() / speed) {
                     break;
@@ -74,7 +75,7 @@ public class Ant implements Comparable<Ant> {
                     currentLoad += order.getPackageAmount();
                     orderList.remove(order);
                 }
-            } else if (Objects.isNull(order)) {
+            } else if (!existsOrder) {
                 count++;
             }
             cost = mapGraph[xIndex][yIndex].getHeuristicValue() / speed;
@@ -110,7 +111,7 @@ public class Ant implements Comparable<Ant> {
             }
             nextNode = nodeList.get(yIndex);
             speed = Speed.valueOf(nextNode.getRegion().name() + nodeList.get(xIndex).getRegion().name()).getSpeed();
-            if (Objects.isNull(findNode(visitedNodes, nextNode.getMatrixIndex()))) {
+            if (notExistsNode(nextNode.getMatrixIndex())) {
                 visitedNodes.add(nextNode);
                 totalCost += (mapGraph[xIndex][yIndex].getHeuristicValue() / speed);
                 if (xIndex != yIndex) totalCost += 1;
@@ -158,7 +159,7 @@ public class Ant implements Comparable<Ant> {
         double denominator = 0.0;
         double speed;
         for (int y = 0; y < mapGraph.length; y++) {
-            if (!Problem.isBlocked(x, y) && Objects.isNull(findNode(visitedNodes, y))) {
+            if (!Problem.isBlocked(x, y) && notExistsNode(y)) {
                 speed = Speed.valueOf(nodeList.get(x).getRegion().name() + nodeList.get(y).getRegion().name()).getSpeed();
                 probList.set(y, getNumerator(mapGraph[x][y], nodeList.get(y)) / speed);
                 denominator += probList.get(y);
@@ -174,7 +175,7 @@ public class Ant implements Comparable<Ant> {
             numerator = Math.pow(pheromoneConc, Constant.ALPHA);
             numerator *= Math.pow(1 / values.getHeuristicValue(), Constant.BETA);
             numerator *= Math.pow(1 / (double) n.getRegion().getMaxHours(), Constant.BETA);
-            if (Objects.nonNull(findOrder(orderList, n)))
+            if (Objects.nonNull(findOrder(n)))
                 numerator *= 3;
             else
                 numerator *= 0.5;
@@ -182,15 +183,15 @@ public class Ant implements Comparable<Ant> {
         return numerator;
     }
 
-    private Order findOrder(List<Order> orders, Node node) {
-        return orders.stream().filter(order -> order.getDestination() == node).findFirst().orElse(null);
+    private Order findOrder(Node node) {
+        return orderList.stream().filter(order -> order.getDestination() == node).findFirst().orElse(null);
     }
 
-    private Node findNode(List<Node> nodes, int i) {
-        return nodes.stream()
+    private boolean notExistsNode(int i) {
+        return Objects.isNull(visitedNodes.stream()
                 .filter(node -> i == node.getMatrixIndex())
                 .findFirst()
-                .orElse(null);
+                .orElse(null));
     }
 
     private void localUpdate(Matrix value) {
