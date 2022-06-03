@@ -24,7 +24,7 @@ public class AntColony {
         colonySize = n;
     }
 
-    public List<Node> getRoute(int start, Matrix[][] mapGraph, List<Node> nodeList, List<Order> orderList, double maxLoad) {
+    public List<Visited> getRoute(int start, Matrix[][] mapGraph, List<Node> nodeList, List<Order> orderList, double maxLoad) {
         int i;
         for (i = 0; i < colonySize; i++) {
             colony[i] = new Ant(start, nodeList, orderList);
@@ -35,22 +35,22 @@ public class AntColony {
             globalUpdate(mapGraph, colony[i], start);
         }
 
-        return colony[0].getVisitedNodes();
+        return colony[0].getVisitedList();
     }
 
-    public List<Node> routeBack(int start, Matrix[][] mapGraph, List<Node> nodeList) {
+    public List<Visited> routeBack(int start, Matrix[][] mapGraph, List<Node> nodeList) {
         for (int i = 0; i < colonySize; i++) {
             colony[i] = new Ant(start, nodeList);
             colony[i].routeBack(mapGraph);
         }
         Arrays.sort(colony);
-        return colony[0].getVisitedNodes();
+        return colony[0].getVisitedList();
     }
 
     private void globalUpdate(Matrix[][] mapGraph, Ant ant, int start) {
         int i = start, j;
         double concValue;
-        for (Node node : ant.getVisitedNodes()) {
+        for (Visited node : ant.getVisitedList()) {
             j = node.getMatrixIndex();
             if (mapGraph[i][j].getHeuristicValue() > 0) {
                 concValue = mapGraph[i][j].getPheromoneConc();

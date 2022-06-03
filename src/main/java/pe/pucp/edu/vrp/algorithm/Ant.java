@@ -20,9 +20,8 @@ import pe.pucp.edu.vrp.util.Speed;
 @Setter
 @ToString
 public class Ant implements Comparable<Ant> {
-    private List<Node> visitedNodes;
+    private List<Visited> visitedList;
     private List<Node> nodeList;
-    private List<Double> costList;
     private List<Order> orderList;
     private double totalCost;
     private double currentLoad;
@@ -30,43 +29,40 @@ public class Ant implements Comparable<Ant> {
 
 
     public Ant(int x, List<Node> nodeList, List<Order> orderList) {
-        visitedNodes = new ArrayList<>();
+        visitedList = new ArrayList<>();
         totalCost = 0;
         currentLoad = 0;
         start = x;
         this.nodeList = nodeList;
-        costList = new ArrayList<>();
         this.orderList = new ArrayList<>(orderList);
     }
 
     public Ant(int x, List<Node> nodeList) {
-        visitedNodes = new ArrayList<>();
+        visitedList = new ArrayList<>();
         totalCost = 0;
         start = x;
         orderList = new ArrayList<>();
-        costList = new ArrayList<>();
         this.nodeList = nodeList;
     }
 
     public void work(Matrix[][] mapGraph, double maxLoad) {
         int xIndex = start, yIndex, count = 0;
-        Node nextNode = nodeList.get(start);
+        Node next = nodeList.get(start);
         Order order;
         double speed, cost;
         boolean existsOrder;
 
-        visitedNodes.add(nextNode);
-        costList.add(0.0);
+        visitedList.add(new Visited(next.getUbigeo(), next.getMatrixIndex(), 0.0));
         while (true) {
             yIndex = chooseNext(mapGraph, xIndex);
             if (yIndex == -1) {
                 break;
             }
-            nextNode = nodeList.get(yIndex);
-            order = findOrder(nextNode);
-            speed = Speed.valueOf(nextNode.getRegion().name() + nodeList.get(xIndex).getRegion().name()).getSpeed();
+            next = nodeList.get(yIndex);
+            order = findOrder(next);
+            speed = Speed.valueOf(next.getRegion().name() + nodeList.get(xIndex).getRegion().name()).getSpeed();
             existsOrder = Objects.nonNull(order);
-            if (existsOrder && notExistsNode(nextNode.getMatrixIndex())) {
+            if (existsOrder && notExistsNode(next.getMatrixIndex())) {
                 if (order.getPackageAmount() + currentLoad > maxLoad ||
                         order.getRemainingTime() < totalCost + mapGraph[xIndex][yIndex].getHeuristicValue() / speed) {
                     break;
@@ -79,10 +75,12 @@ public class Ant implements Comparable<Ant> {
                 count++;
             }
             cost = mapGraph[xIndex][yIndex].getHeuristicValue() / speed;
-            visitedNodes.add(nextNode);
-            costList.add(cost);
+            Visited visited = new Visited(next.getUbigeo(), next.getMatrixIndex(), cost);
+            visitedList.add(visited);
             totalCost += cost;
             if (xIndex != yIndex) totalCost += 1;
+            if (existsOrder)
+                visited.setOrderId(order.getOrderId());
             localUpdate(mapGraph[xIndex][yIndex]);
             xIndex = yIndex;
 
@@ -91,10 +89,9 @@ public class Ant implements Comparable<Ant> {
             }
         }
 
-        for (int i = visitedNodes.size() - 1; count > 0; i--) {
-            visitedNodes.remove(i);
-            cost = costList.get(i);
-            totalCost -= cost;
+        for (int i = visitedList.size() - 1; count > 0; i--) {
+            totalCost -= visitedList.get(i).getTravelCost();
+            visitedList.remove(i);
             count--;
         }
     }
@@ -102,7 +99,7 @@ public class Ant implements Comparable<Ant> {
     public void routeBack(Matrix[][] mapGraph) {
         int xIndex = start, yIndex;
         Node nextNode;
-        double speed;
+        double speed, cost;
 
         while (true) {
             yIndex = chooseNext(mapGraph, xIndex);
@@ -112,8 +109,9 @@ public class Ant implements Comparable<Ant> {
             nextNode = nodeList.get(yIndex);
             speed = Speed.valueOf(nextNode.getRegion().name() + nodeList.get(xIndex).getRegion().name()).getSpeed();
             if (notExistsNode(nextNode.getMatrixIndex())) {
-                visitedNodes.add(nextNode);
-                totalCost += (mapGraph[xIndex][yIndex].getHeuristicValue() / speed);
+                cost = mapGraph[xIndex][yIndex].getHeuristicValue() / speed;
+                visitedList.add(new Visited(nextNode.getUbigeo(), nextNode.getMatrixIndex(), cost));
+                totalCost += cost;
                 if (xIndex != yIndex) totalCost += 1;
                 localUpdate(mapGraph[xIndex][yIndex]);
                 xIndex = yIndex;
@@ -188,7 +186,7 @@ public class Ant implements Comparable<Ant> {
     }
 
     private boolean notExistsNode(int i) {
-        return Objects.isNull(visitedNodes.stream()
+        return Objects.isNull(visitedList.stream()
                 .filter(node -> i == node.getMatrixIndex())
                 .findFirst()
                 .orElse(null));

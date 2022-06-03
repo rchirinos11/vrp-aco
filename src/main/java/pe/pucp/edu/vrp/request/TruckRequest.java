@@ -1,7 +1,15 @@
 package pe.pucp.edu.vrp.request;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.NonNull;
+import lombok.Setter;
+import pe.pucp.edu.vrp.algorithm.Visited;
+
+import java.util.List;
 
 @Getter
 @Setter
@@ -21,4 +29,8 @@ public class TruckRequest {
     @NonNull
     @JsonProperty("maxLoad")
     private double maxLoad;
+
+    @NonNull
+    @JsonProperty("orderList")
+    private List<Visited> orderList;
 }

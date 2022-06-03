@@ -31,24 +31,24 @@ public class SuperColony implements Comparable<SuperColony> {
         int i = 0;
         while (i < truckList.size() && !depotOrders.isEmpty()) {
             Truck truck = truckList.get(i++);
-            List<Node> route = antColony.getRoute(truck.getStart(), mapGraph, nodeList, depotOrders, truck.getMaxLoad());
+            List<Visited> route = antColony.getRoute(truck.getStart(), mapGraph, nodeList, depotOrders, truck.getMaxLoad());
             if (removeOrders(route, depotOrders) && route.size() > 1) {
                 truck.setCost(antColony.getColony()[0].getTotalCost());
                 truck.setCurrentLoad(antColony.getColony()[0].getCurrentLoad());
                 cost += truck.getCost();
-                List<Node> routeBack = antColony.routeBack(route.get(route.size() - 1).getMatrixIndex(), mapGraph, nodeList);
+                List<Visited> routeBack = antColony.routeBack(route.get(route.size() - 1).getMatrixIndex(), mapGraph, nodeList);
                 route.addAll(routeBack);
-                truck.setNodeRoute(route);
+                truck.setRoute(route);
             }
         }
         missingRouted = depotOrders.size();
     }
 
-    private boolean removeOrders(List<Node> route, List<Order> orderList) {
+    private boolean removeOrders(List<Visited> route, List<Order> orderList) {
         if (route.isEmpty()) return true;
         boolean removed = false;
-        for (Node node : route) {
-            Order order = orderList.stream().filter(o -> node == o.getDestination()).findFirst().orElse(null);
+        for (Visited node : route) {
+            Order order = orderList.stream().filter(o -> node.getOrderId() == o.getOrderId()).findFirst().orElse(null);
             if (Objects.nonNull(order)) {
                 orderList.remove(order);
                 removed = true;

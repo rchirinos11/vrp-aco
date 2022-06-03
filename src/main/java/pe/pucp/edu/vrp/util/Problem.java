@@ -49,7 +49,7 @@ public class Problem {
                     Node nodeI = nodeList.get(i);
                     Node nodeJ = nodeList.get(j);
                     distance = getDistance(nodeI.getLatitude(), nodeJ.getLatitude(), nodeI.getLongitude(), nodeJ.getLongitude());
-                    mapGraph[i][j].setHeuristicValue(Math.sqrt(distance));
+                    mapGraph[i][j].setHeuristicValue(distance);
                 }
             }
         }
@@ -82,7 +82,7 @@ public class Problem {
 
             //Cargando los Oficinas
             Node node = Node.builder().matrixIndex(n).ubigeo(values[0]).department(values[1]).city(values[2]).
-                    longitude(Double.parseDouble(values[3])).latitude(Double.parseDouble(values[4])).region(Region.valueOf(values[5])).build();
+                    latitude(Double.parseDouble(values[3])).longitude(Double.parseDouble(values[4])).region(Region.valueOf(values[5])).build();
             nodeList.add(node);
 
             //Cargando los 3 Almacenes Principales
@@ -118,13 +118,13 @@ public class Problem {
     private static double getDistance(double lat1, double lat2, double lon1, double lon2) {
         double rad, p, left, right, sum, dist = 0;
         rad = 6371;
-        p = 3.141593 / 180;
+        p = Math.PI / 180;
 
         left = 0.5 - Math.cos((lat2 - lat1) * p) / 2;
         right = Math.cos(lat1 * p) * Math.cos(lat2 * p) * (1 - Math.cos((lon2 - lon1) * p)) / 2;
         sum = left + right;
 
-        dist = 2 * rad * Math.asin(1 / invSqrt((float) sum));
+        dist = 2 * rad * Math.asin(Math.sqrt(sum));
         return dist;
     }
 

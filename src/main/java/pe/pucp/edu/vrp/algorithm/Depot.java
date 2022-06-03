@@ -3,7 +3,6 @@ package pe.pucp.edu.vrp.algorithm;
 import lombok.Getter;
 import lombok.Setter;
 import pe.pucp.edu.vrp.util.Constant;
-import pe.pucp.edu.vrp.util.Problem;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -37,7 +36,7 @@ public class Depot extends Node {
         currentFleet = superColonyList[0].getTruckList();
         List<Order> copyList = new ArrayList<>(depotOrders);
         for (Truck t : currentFleet) {
-            removeOrders(t.getNodeRoute(), copyList);
+            removeOrders(t.getRoute(), copyList);
         }
         if (!copyList.isEmpty()) {
             System.out.println("Error, orders missing to route: " + copyList);
@@ -46,10 +45,10 @@ public class Depot extends Node {
         return copyList;
     }
 
-    private void removeOrders(List<Node> route, List<Order> orderList) {
+    private void removeOrders(List<Visited> route, List<Order> orderList) {
         if (route.isEmpty()) return;
-        for (Node node : route) {
-            Order order = orderList.stream().filter(o -> node == o.getDestination()).findFirst().orElse(null);
+        for (Visited node : route) {
+            Order order = orderList.stream().filter(o -> node.getOrderId() == o.getOrderId()).findFirst().orElse(null);
             if (Objects.nonNull(order)) {
                 orderList.remove(order);
             }
