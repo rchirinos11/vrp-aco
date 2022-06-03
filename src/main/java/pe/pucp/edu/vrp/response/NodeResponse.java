@@ -12,5 +12,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @Builder
 public class NodeResponse {
+    private Integer idOrder;
     private String ubigeo;
+    private double travelCost;
 }

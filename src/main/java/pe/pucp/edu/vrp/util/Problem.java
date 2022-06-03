@@ -15,6 +15,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Scanner;
 
 /**
@@ -34,6 +35,7 @@ public class Problem {
 
     public static void initParams() throws IOException {
         int size = readOffices();
+        double distance;
         mapGraph = new Matrix[size][size];
         for (int i = 0; i < size; i++) {
             mapGraph[i] = new Matrix[size];
@@ -46,20 +48,23 @@ public class Problem {
                     mapGraph[i][j].setPheromoneConc(1.0);
                     Node nodeI = nodeList.get(i);
                     Node nodeJ = nodeList.get(j);
-                    double distance = Math.pow(nodeI.getLatitude() - nodeJ.getLatitude(), 2) + Math.pow(nodeI.getLongitude() - nodeJ.getLongitude(), 2);
-                    mapGraph[i][j].setHeuristicValue(Math.sqrt(distance));
+                    distance = getDistance(nodeI.getLatitude(), nodeJ.getLatitude(), nodeI.getLongitude(), nodeJ.getLongitude());
+                    mapGraph[i][j].setHeuristicValue(distance);
                 }
             }
         }
         readConnections();
     }
 
-    public static double routeOrders() {
-        double totalTraveled = 0;
+    public static List<Order> routeOrders() {
+        List<Order> missingOrders = new ArrayList<>();
         for (Depot depot : depotList) {
-            totalTraveled += depot.depotRouting(mapGraph, nodeList);
+            List<Order> orderList = depot.depotRouting(mapGraph, nodeList);
+            if (Objects.nonNull(orderList) && !orderList.isEmpty()) {
+                missingOrders.addAll(depot.getDepotOrders());
+            }
         }
-        return totalTraveled;
+        return missingOrders;
     }
 
     private static int readOffices() throws IOException {
@@ -77,7 +82,7 @@ public class Problem {
 
             //Cargando los Oficinas
             Node node = Node.builder().matrixIndex(n).ubigeo(values[0]).department(values[1]).city(values[2]).
-                    longitude(Double.parseDouble(values[3])).latitude(Double.parseDouble(values[4])).region(Region.valueOf(values[5])).build();
+                    latitude(Double.parseDouble(values[3])).longitude(Double.parseDouble(values[4])).region(Region.valueOf(values[5])).build();
             nodeList.add(node);
 
             //Cargando los 3 Almacenes Principales
@@ -108,6 +113,19 @@ public class Problem {
             y = n.getMatrixIndex();
             connectionList.add(new Connection(x, y, false));
         }
+    }
+
+    private static double getDistance(double lat1, double lat2, double lon1, double lon2) {
+        double rad, p, left, right, sum, dist = 0;
+        rad = 6371;
+        p = Math.PI / 180;
+
+        left = 0.5 - Math.cos((lat2 - lat1) * p) / 2;
+        right = Math.cos(lat1 * p) * Math.cos(lat2 * p) * (1 - Math.cos((lon2 - lon1) * p)) / 2;
+        sum = left + right;
+
+        dist = 2 * rad * Math.asin(Math.sqrt(sum));
+        return dist;
     }
 
     public static void resetDepots() {

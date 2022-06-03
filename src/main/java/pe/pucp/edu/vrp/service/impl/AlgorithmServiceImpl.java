@@ -7,6 +7,7 @@ import pe.pucp.edu.vrp.algorithm.Matrix;
 import pe.pucp.edu.vrp.algorithm.Node;
 import pe.pucp.edu.vrp.algorithm.Order;
 import pe.pucp.edu.vrp.algorithm.Truck;
+import pe.pucp.edu.vrp.algorithm.Visited;
 import pe.pucp.edu.vrp.request.AlgorithmRequest;
 import pe.pucp.edu.vrp.request.OrderRequest;
 import pe.pucp.edu.vrp.request.TruckRequest;
@@ -54,11 +55,14 @@ public class AlgorithmServiceImpl implements AlgorithmService {
         }
 
         long start = System.currentTimeMillis();
-        double traveled = Problem.routeOrders();
+        List<Order> missingOrders = Problem.routeOrders();
         long finish = System.currentTimeMillis();
         System.out.println("\nAlgorithm time: " + (finish - start) + " ms");
-        System.out.printf("Total time traveled: %3.2f h\n", traveled);
 
+        return createResponse(depotList, missingOrders);
+    }
+
+    private ResponseEntity<AlgorithmResponse> createResponse(List<Depot> depotList, List<Order> orderList) {
         List<DepotResponse> depotResponseList = new ArrayList<>();
         for (Depot d : depotList) {
             List<TruckResponse> truckResponseList = new ArrayList<>();
@@ -66,18 +70,29 @@ public class AlgorithmServiceImpl implements AlgorithmService {
             int load = 0;
             for (Truck t : d.getCurrentFleet()) {
                 List<NodeResponse> nodeResponseList = new ArrayList<>();
-                for (Node n : t.getNodeRoute())
-                    nodeResponseList.add(NodeResponse.builder().ubigeo(n.getUbigeo()).build());
+                List<Integer> orderResponseList = new ArrayList<>();
+                for (Visited n : t.getRoute()) {
+                    nodeResponseList.add(NodeResponse.builder().ubigeo(n.getUbigeo()).idOrder(n.getOrderId()).travelCost(n.getTravelCost()).build());
+                    if (n.getOrderId() > 0) {
+                        orderResponseList.add(n.getOrderId());
+                    }
+                }
 
                 truckResponseList.add(TruckResponse.builder().id(t.getId()).nodeRoute(nodeResponseList).load(t.getCurrentLoad())
-                        .cost(t.getCost()).build());
+                        .orderList(orderResponseList).cost(t.getCost()).build());
                 cost += t.getCost();
                 load += t.getCurrentLoad();
             }
             depotResponseList.add(DepotResponse.builder().ubigeo(d.getUbigeo()).truckList(truckResponseList).city(d.getCity())
                     .depotCost(cost).packagesRouted(load).build());
         }
-        return ResponseEntity.ok().body(AlgorithmResponse.builder().depotList(depotResponseList).build());
+
+        List<NodeResponse> missingOrderList = new ArrayList<>();
+        for (Order order : orderList) {
+            NodeResponse node = NodeResponse.builder().idOrder(order.getOrderId()).ubigeo(order.getDestination().getUbigeo()).build();
+            missingOrderList.add(node);
+        }
+        return ResponseEntity.ok().body(new AlgorithmResponse(depotResponseList, missingOrderList));
     }
 
     private boolean assignTruck(List<Node> nodeList, List<Depot> depotList, TruckRequest truck, Matrix[][] mapGraph) {

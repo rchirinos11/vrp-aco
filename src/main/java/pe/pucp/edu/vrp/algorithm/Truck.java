@@ -19,14 +19,14 @@ public class Truck {
     private double maxLoad;
     private double cost;
     private int start;
-    private List<Node> nodeRoute;
+    private List<Visited> route;
     private boolean working;
 
     public Truck(int id, int start, double max) {
         this.id = id;
         this.start = start;
         currentLoad = 0.0;
-        nodeRoute = new ArrayList<>();
+        route = new ArrayList<>();
         maxLoad = max;
         working = true;
     }
@@ -38,6 +38,6 @@ public class Truck {
         maxLoad = t.getMaxLoad();
         working = t.isWorking();
         start = t.start;
-        nodeRoute = new ArrayList<>(t.getNodeRoute());
+        route = new ArrayList<>(t.getRoute());
     }
 }
