@@ -48,6 +48,9 @@ public class AntColony {
     }
 
     private void globalUpdate(Matrix[][] mapGraph, Ant ant, int start) {
+        if (ant.getVisitedList().size() == 1)
+            return;
+
         int i = start, j;
         double concValue;
         for (Visited node : ant.getVisitedList()) {

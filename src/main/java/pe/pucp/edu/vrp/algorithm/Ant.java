@@ -117,7 +117,7 @@ public class Ant implements Comparable<Ant> {
                 xIndex = yIndex;
             }
 
-            if (totalCost > Region.SELVA.getMaxHours() || isDepot(nextNode)) {
+            if (isDepot(nextNode)) {
                 break;
             }
         }
