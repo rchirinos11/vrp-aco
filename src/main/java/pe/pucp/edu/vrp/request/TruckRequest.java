@@ -28,7 +28,7 @@ public class TruckRequest {
 
     @NonNull
     @JsonProperty("maxLoad")
-    private double maxLoad;
+    private Integer maxLoad;
 
     @NonNull
     @JsonProperty("orderList")

@@ -16,13 +16,13 @@ public class Truck {
     private int id;
     private char type;
     private double currentLoad;
-    private double maxLoad;
+    private int maxLoad;
     private double cost;
     private int start;
     private List<Visited> route;
     private boolean working;
 
-    public Truck(int id, int start, double max) {
+    public Truck(int id, int start, int max) {
         this.id = id;
         this.start = start;
         currentLoad = 0.0;

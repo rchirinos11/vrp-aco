@@ -27,6 +27,7 @@ public class AlgorithmServiceImpl implements AlgorithmService {
     @Override
     public ResponseEntity<?> routeTrucks(AlgorithmRequest request) {
         Problem.resetDepots();
+        splitPackages(request.getOrderList(), request.getTruckList());
 
         List<Node> nodeList = Problem.nodeList;
         List<Depot> depotList = Problem.depotList;
@@ -119,7 +120,35 @@ public class AlgorithmServiceImpl implements AlgorithmService {
         return true;
     }
 
+    private void splitPackages(List<OrderRequest> orderList, List<TruckRequest> truckList) {
+        int gcd = truckList.get(0).getMaxLoad();
+        int packages;
+
+        for (int i = 1; i < truckList.size(); i++) {
+            TruckRequest truck = truckList.get(i);
+            gcd = calculateGcd(gcd, truck.getMaxLoad());
+        }
+
+        for (int i = 0; i < orderList.size(); i++) {
+            OrderRequest order = orderList.get(i);
+            packages = order.getPackages();
+            if (packages > gcd) {
+                order.setPackages(gcd);
+                packages -= gcd;
+                orderList.add(i--, OrderRequest.builder().id(order.getId()).packages(packages)
+                        .remainingTime(order.getRemainingTime()).ubigeo(order.getUbigeo()).build());
+            }
+        }
+
+    }
+
     private Node findNode(List<Node> nodeList, String ubigeo) {
         return nodeList.stream().filter(node -> node.getUbigeo().equals(ubigeo)).findFirst().orElse(null);
+    }
+
+    private int calculateGcd(int a, int b) {
+        if (a == 0) return b;
+        if (b == 0) return a;
+        return calculateGcd(b, a % b);
     }
 }
