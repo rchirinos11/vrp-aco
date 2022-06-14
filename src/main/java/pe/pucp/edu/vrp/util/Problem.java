@@ -111,7 +111,7 @@ public class Problem {
             x = n.getMatrixIndex();
             n = nodeList.stream().filter(node -> node.getUbigeo().equals(values[1])).findFirst().orElse(null);
             y = n.getMatrixIndex();
-            connectionList.add(new Connection(x, y, false));
+            connectionList.add(new Connection(x, y, false, 0));
         }
     }
 
@@ -158,6 +158,15 @@ public class Problem {
                 return true;
         }
         return true;
+    }
+
+    public static void setBlockades(int x, int y, double time) {
+        for (Connection cn : connectionList) {
+            if (cn.getXIndex() == x && cn.getYIndex() == y) {
+                cn.setBlocked(true);
+                cn.setBlockadeDuration(time);
+            }
+        }
     }
 
     public static float invSqrt(float number) {

@@ -7,21 +7,19 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.List;
-
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class AlgorithmRequest {
-    @JsonProperty("orderList")
-    private List<OrderRequest> orderList;
+public class BlockadeRequest {
 
-    @JsonProperty("truckList")
-    private List<TruckRequest> truckList;
+    @JsonProperty("firstNode")
+    private String firstNode;
 
-    @JsonProperty("blockadeList")
-    private List<BlockadeRequest> blockadeList;
+    @JsonProperty("secondNode")
+    private String secondNode;
 
+    @JsonProperty("duration")
+    private Double duration;
 }

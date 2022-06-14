@@ -35,9 +35,8 @@ public class Depot extends Node {
         Arrays.sort(superColonyList);
         currentFleet = superColonyList[0].getTruckList();
         List<Order> copyList = new ArrayList<>(depotOrders);
-        for (Truck t : currentFleet) {
-            removeOrders(t.getRoute(), copyList);
-        }
+        copyList.removeIf(order ->  Objects.isNull(superColonyList[0].getDepotOrders()
+                .stream().filter(o -> order == o).findFirst().orElse(null)));
         if (!copyList.isEmpty()) {
             System.out.println("Error, orders missing to route: " + copyList);
         }
@@ -45,13 +44,4 @@ public class Depot extends Node {
         return copyList;
     }
 
-    private void removeOrders(List<Visited> route, List<Order> orderList) {
-        if (route.isEmpty()) return;
-        for (Visited node : route) {
-            Order order = orderList.stream().filter(o -> node.getOrderId() == o.getOrderId()).findFirst().orElse(null);
-            if (Objects.nonNull(order)) {
-                orderList.remove(order);
-            }
-        }
-    }
 }

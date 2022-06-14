@@ -9,6 +9,7 @@ import pe.pucp.edu.vrp.algorithm.Order;
 import pe.pucp.edu.vrp.algorithm.Truck;
 import pe.pucp.edu.vrp.algorithm.Visited;
 import pe.pucp.edu.vrp.request.AlgorithmRequest;
+import pe.pucp.edu.vrp.request.BlockadeRequest;
 import pe.pucp.edu.vrp.request.OrderRequest;
 import pe.pucp.edu.vrp.request.TruckRequest;
 import pe.pucp.edu.vrp.response.AlgorithmResponse;
@@ -27,10 +28,14 @@ public class AlgorithmServiceImpl implements AlgorithmService {
     @Override
     public ResponseEntity<?> routeTrucks(AlgorithmRequest request) {
         Problem.resetDepots();
-        splitPackages(request.getOrderList(), request.getTruckList());
-
         List<Node> nodeList = Problem.nodeList;
         List<Depot> depotList = Problem.depotList;
+
+        splitPackages(request.getOrderList(), request.getTruckList());
+        if (readBlockades(request.getBlockadeList(), nodeList)) {
+            return ResponseEntity.badRequest().body(new Exception("Error en la lista de bloqueos"));
+        }
+
         for (TruckRequest truck : request.getTruckList()) {
             Depot depot = depotList.stream().filter(d -> d.getUbigeo().equals(truck.getUbigeo())).findFirst().orElse(null);
             if (Objects.nonNull(depot)) {
@@ -61,6 +66,22 @@ public class AlgorithmServiceImpl implements AlgorithmService {
         System.out.println("\nAlgorithm time: " + (finish - start) + " ms");
 
         return createResponse(depotList, missingOrders);
+    }
+
+    private boolean readBlockades(List<BlockadeRequest> blockadeList, List<Node> nodeList) {
+        if (Objects.isNull(blockadeList))
+            return false;
+
+        for (BlockadeRequest blockade : blockadeList) {
+            String xUbigeo = blockade.getFirstNode();
+            Node x = nodeList.stream().filter(node -> node.getUbigeo().equals(xUbigeo)).findFirst().orElse(null);
+            String yUbigeo = blockade.getSecondNode();
+            Node y = nodeList.stream().filter(node -> node.getUbigeo().equals(yUbigeo)).findFirst().orElse(null);
+            if (Objects.isNull(x) || Objects.isNull(y))
+                return true;
+            Problem.setBlockades(x.getMatrixIndex(), y.getMatrixIndex(), blockade.getDuration());
+        }
+        return false;
     }
 
     private ResponseEntity<AlgorithmResponse> createResponse(List<Depot> depotList, List<Order> orderList) {

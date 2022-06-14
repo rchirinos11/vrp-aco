@@ -34,7 +34,7 @@ public class SuperColony implements Comparable<SuperColony> {
             Truck truck = truckList.get(i++);
             List<Visited> route = antColony.getRoute(truck.getStart(), mapGraph, nodeList, depotOrders, truck.getMaxLoad());
             Ant ant = antColony.getColony()[0];
-            if (removeOrders(route, depotOrders) && route.size() > 1) {
+            if (removeOrders(ant.getOrderList()) && route.size() > 1) {
                 count = 0;
                 truck.setCost(ant.getTotalCost());
                 truck.setCurrentLoad(ant.getCurrentLoad());
@@ -50,17 +50,9 @@ public class SuperColony implements Comparable<SuperColony> {
         missingRouted = depotOrders.size();
     }
 
-    private boolean removeOrders(List<Visited> route, List<Order> orderList) {
-        if (route.isEmpty()) return true;
-        boolean removed = false;
-        for (Visited node : route) {
-            Order order = orderList.stream().filter(o -> node.getOrderId() == o.getOrderId()).findFirst().orElse(null);
-            if (Objects.nonNull(order)) {
-                orderList.remove(order);
-                removed = true;
-            }
-        }
-        return removed;
+    private boolean removeOrders(List<Order> orderList) {
+        return depotOrders.removeIf(order -> Objects.isNull(orderList.stream()
+                .filter(o -> order == o).findFirst().orElse(null)));
     }
 
     @Override
