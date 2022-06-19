@@ -49,6 +49,7 @@ public class Ant implements Comparable<Ant> {
         int xIndex = start, yIndex, count = 0;
         Node next = nodeList.get(start);
         Order order;
+        Visited visited;
         double speed, cost;
         boolean existsOrder, existsNode;
 
@@ -64,7 +65,8 @@ public class Ant implements Comparable<Ant> {
             existsOrder = Objects.nonNull(order);
             existsNode = notExistsNode(next.getMatrixIndex());
             cost = mapGraph[xIndex][yIndex].getHeuristicValue() / speed;
-            visitedList.add(new Visited(next.getUbigeo(), next.getMatrixIndex(), cost));
+            visited = new Visited(next.getUbigeo(), next.getMatrixIndex(), cost);
+            visitedList.add(visited);
             totalCost += cost;
             if (xIndex != yIndex) totalCost += 1;
             if (existsOrder && existsNode) {
@@ -74,6 +76,7 @@ public class Ant implements Comparable<Ant> {
                     break;
                 } else {
                     count = 0;
+                    visited.setOrderId(order.getOrderId());
                     boolean first = true;
                     while(existsOrder && order.getPackageAmount() + currentLoad < maxLoad) {
                         currentLoad += order.getPackageAmount();
@@ -81,7 +84,7 @@ public class Ant implements Comparable<Ant> {
                         if (first) {
                             first = false;
                         } else {    //add partial/same node order to visited list
-                            Visited visited = new Visited(next.getUbigeo(), next.getMatrixIndex(), 0);
+                            visited = new Visited(next.getUbigeo(), next.getMatrixIndex(), 0);
                             visited.setOrderId(order.getOrderId());
                             visitedList.add(visited);
                         }
