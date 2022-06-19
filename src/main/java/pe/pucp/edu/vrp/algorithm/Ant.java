@@ -50,8 +50,7 @@ public class Ant implements Comparable<Ant> {
         Node next = nodeList.get(start);
         Order order;
         double speed, cost;
-        boolean existsOrder;
-        int orderId;
+        boolean existsOrder, existsNode;
 
         visitedList.add(new Visited(next.getUbigeo(), next.getMatrixIndex(), 0.0));
         while (true) {
@@ -60,20 +59,33 @@ public class Ant implements Comparable<Ant> {
                 break;
             }
             next = nodeList.get(yIndex);
-            orderId = 0;
             order = findOrder(next);
             speed = Speed.valueOf(next.getRegion().name() + nodeList.get(xIndex).getRegion().name()).getSpeed();
             existsOrder = Objects.nonNull(order);
-            if (existsOrder && notExistsNode(next.getMatrixIndex())) {
+            existsNode = notExistsNode(next.getMatrixIndex());
+            cost = mapGraph[xIndex][yIndex].getHeuristicValue() / speed;
+            visitedList.add(new Visited(next.getUbigeo(), next.getMatrixIndex(), cost));
+            totalCost += cost;
+            if (xIndex != yIndex) totalCost += 1;
+            if (existsOrder && existsNode) {
                 if (order.getPackageAmount() + currentLoad > maxLoad ||
                         order.getRemainingTime() < totalCost + mapGraph[xIndex][yIndex].getHeuristicValue() / speed) {
+                    count++;
                     break;
                 } else {
                     count = 0;
-                    orderId = order.getOrderId();
+                    boolean first = true;
                     while(existsOrder && order.getPackageAmount() + currentLoad < maxLoad) {
                         currentLoad += order.getPackageAmount();
                         orderList.remove(order);
+                        if (first) {
+                            first = false;
+                        } else {    //add partial/same node order to visited list
+                            Visited visited = new Visited(next.getUbigeo(), next.getMatrixIndex(), 0);
+                            visited.setOrderId(order.getOrderId());
+                            visitedList.add(visited);
+                        }
+
                         order = findOrder(next);
                         existsOrder = Objects.nonNull(order);
                     }
@@ -81,13 +93,6 @@ public class Ant implements Comparable<Ant> {
             } else if (!existsOrder) {
                 count++;
             }
-            cost = mapGraph[xIndex][yIndex].getHeuristicValue() / speed;
-            Visited visited = new Visited(next.getUbigeo(), next.getMatrixIndex(), cost);
-            visitedList.add(visited);
-            totalCost += cost;
-            if (xIndex != yIndex) totalCost += 1;
-            if (orderId > 0)
-                visited.setOrderId(orderId);
             localUpdate(mapGraph[xIndex][yIndex]);
             xIndex = yIndex;
 
