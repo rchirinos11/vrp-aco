@@ -1,0 +1,10 @@
+Para la instalacion y despliegue de este proyecto se necesita tener instalado jre11.
+Para clonar el proyecto se requiere Git. 
+
+Si se cuenta con jre11, se puede correr el proyecto usando el archivo "run.sh"
+
+Encaso se desee correr manualmente, las instrucciones paso a paso son:
+- Ubicarse en la carpeta origen del repositorio
+- Ejecutar el comando "./mvnw clean install"
+- Ejecutar el comando "java -jar target/vrp-0.0.1-SNAPSHOT.jar"
+
