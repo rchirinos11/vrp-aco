@@ -79,7 +79,7 @@ public class AlgorithmServiceImpl implements AlgorithmService {
             Node y = nodeList.stream().filter(node -> node.getUbigeo().equals(yUbigeo)).findFirst().orElse(null);
             if (Objects.isNull(x) || Objects.isNull(y))
                 return true;
-            Problem.setBlockades(x.getMatrixIndex(), y.getMatrixIndex(), blockade.getDuration());
+            Problem.setBlockades(x.getMatrixIndex(), y.getMatrixIndex(), blockade.getStart(), blockade.getEnd());
         }
         return false;
     }

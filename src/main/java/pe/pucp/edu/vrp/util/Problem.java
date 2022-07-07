@@ -111,7 +111,7 @@ public class Problem {
             x = n.getMatrixIndex();
             n = nodeList.stream().filter(node -> node.getUbigeo().equals(values[1])).findFirst().orElse(null);
             y = n.getMatrixIndex();
-            connectionList.add(new Connection(x, y, false, 0));
+            connectionList.add(new Connection(x, y));
         }
     }
 
@@ -150,21 +150,23 @@ public class Problem {
         }
     }
 
-    public static boolean isBlocked(int x, int y) {
+    public static boolean isBlocked(int x, int y, double timePassed) {
         for (Connection cn : connectionList) {
             if (cn.getXIndex() == x && cn.getYIndex() == y && !cn.isBlocked())
                 return false;
-            else if (cn.getXIndex() == x && cn.getYIndex() == y && cn.isBlocked())
-                return true;
+            else if (cn.getXIndex() == x && cn.getYIndex() == y && cn.isBlocked()) {
+                return cn.getBlockadeStart() < timePassed && cn.getBlockadeEnd() > timePassed;
+            }
         }
         return true;
     }
 
-    public static void setBlockades(int x, int y, double time) {
+    public static void setBlockades(int x, int y, double start, double end) {
         for (Connection cn : connectionList) {
             if (cn.getXIndex() == x && cn.getYIndex() == y) {
                 cn.setBlocked(true);
-                cn.setBlockadeDuration(time);
+                cn.setBlockadeStart(start);
+                cn.setBlockadeEnd(end);
             }
         }
     }

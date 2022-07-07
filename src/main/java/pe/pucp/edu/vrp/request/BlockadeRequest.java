@@ -20,6 +20,9 @@ public class BlockadeRequest {
     @JsonProperty("secondNode")
     private String secondNode;
 
-    @JsonProperty("duration")
-    private Double duration;
+    @JsonProperty("start")
+    private Double start;
+
+    @JsonProperty("end")
+    private Double end;
 }

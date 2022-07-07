@@ -11,5 +11,12 @@ public class Connection {
     private int xIndex;
     private int yIndex;
     private boolean blocked;
-    private double blockadeDuration;
+    private double blockadeStart;
+    private double blockadeEnd;
+
+    public Connection(int x, int y) {
+        xIndex = x;
+        yIndex = y;
+        blocked = false;
+    }
 }

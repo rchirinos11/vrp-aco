@@ -172,7 +172,7 @@ public class Ant implements Comparable<Ant> {
         double denominator = 0.0;
         double speed;
         for (int y = 0; y < mapGraph.length; y++) {
-            if (!Problem.isBlocked(x, y) && notExistsNode(y)) {
+            if (!Problem.isBlocked(x, y, totalCost) && notExistsNode(y)) {
                 speed = Speed.valueOf(nodeList.get(x).getRegion().name() + nodeList.get(y).getRegion().name()).getSpeed();
                 probList.set(y, getNumerator(mapGraph[x][y], nodeList.get(y)) / speed);
                 denominator += probList.get(y);
