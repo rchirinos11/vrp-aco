@@ -58,11 +58,24 @@ public class Problem {
 
     public static List<Order> routeOrders() {
         List<Order> missingOrders = new ArrayList<>();
+        List<Thread> threadList = new ArrayList<>();
         for (Depot depot : depotList) {
-            List<Order> orderList = depot.depotRouting(mapGraph, nodeList);
-            if (Objects.nonNull(orderList) && !orderList.isEmpty()) {
-                missingOrders.addAll(depot.getDepotOrders());
+            Thread t = new Thread(() -> {
+                List<Order> orderList = depot.depotRouting(mapGraph, nodeList);
+                if (Objects.nonNull(orderList) && !orderList.isEmpty()) {
+                    missingOrders.addAll(depot.getDepotOrders());
+                }
+            });
+            t.start();
+            threadList.add(t);
+        }
+        try {
+            for (Thread t : threadList) {
+                t.join();
             }
+        } catch (Exception ex) {
+            System.out.println("Failed to join");
+            return missingOrders;
         }
         return missingOrders;
     }
