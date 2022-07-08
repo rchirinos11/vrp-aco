@@ -15,6 +15,7 @@ import pe.pucp.edu.vrp.request.TruckRequest;
 import pe.pucp.edu.vrp.response.AlgorithmResponse;
 import pe.pucp.edu.vrp.response.DepotResponse;
 import pe.pucp.edu.vrp.response.NodeResponse;
+import pe.pucp.edu.vrp.response.SubOrderResponse;
 import pe.pucp.edu.vrp.response.TruckResponse;
 import pe.pucp.edu.vrp.service.AlgorithmService;
 import pe.pucp.edu.vrp.util.Problem;
@@ -31,7 +32,6 @@ public class AlgorithmServiceImpl implements AlgorithmService {
         List<Node> nodeList = Problem.nodeList;
         List<Depot> depotList = Problem.depotList;
 
-        splitPackages(request.getOrderList(), request.getTruckList());
         if (readBlockades(request.getBlockadeList(), nodeList)) {
             return ResponseEntity.badRequest().body(new Exception("Error en la lista de bloqueos"));
         }
@@ -44,6 +44,7 @@ public class AlgorithmServiceImpl implements AlgorithmService {
                     return ResponseEntity.badRequest().body(new Exception("No se encontro el nodo del almacen"));
                 }
                 depot.getCurrentFleet().add(new Truck(truck.getId(), n.getMatrixIndex(), truck.getMaxLoad()));
+                depot.setMaxCapacity(depot.getMaxCapacity() + truck.getMaxLoad());
             } else if (!assignTruck(nodeList, depotList, truck, Problem.mapGraph)) {
                 return ResponseEntity.badRequest().body(new Exception("No se encontro el Ubigeo del camion"));
             }
@@ -86,17 +87,23 @@ public class AlgorithmServiceImpl implements AlgorithmService {
 
     private ResponseEntity<AlgorithmResponse> createResponse(List<Depot> depotList, List<Order> orderList) {
         List<DepotResponse> depotResponseList = new ArrayList<>();
+        int i = 1;
         for (Depot d : depotList) {
             List<TruckResponse> truckResponseList = new ArrayList<>();
             double cost = 0.0;
             int load = 0;
             for (Truck t : d.getCurrentFleet()) {
                 List<NodeResponse> nodeResponseList = new ArrayList<>();
-                List<Integer> orderResponseList = new ArrayList<>();
+                List<SubOrderResponse> orderResponseList = new ArrayList<>();
                 for (Visited n : t.getRoute()) {
                     nodeResponseList.add(NodeResponse.builder().ubigeo(n.getUbigeo()).idOrder(n.getOrderId()).travelCost(n.getTravelCost()).build());
                     if (n.getOrderId() > 0) {
-                        orderResponseList.add(n.getOrderId());
+                        SubOrderResponse subOrder = SubOrderResponse.builder()
+                                .orderId((long) n.getOrderId())
+                                .packageAmount(n.getAmount())
+                                .suborderId(i++)
+                                .build();
+                        orderResponseList.add(subOrder);
                     }
                 }
 
@@ -136,40 +143,14 @@ public class AlgorithmServiceImpl implements AlgorithmService {
             Node n = findNode(nodeList, ubigeo);
             if (Objects.isNull(n))
                 return false;
-            depotList.get(x).getCurrentFleet().add(0, new Truck(truck.getId(), n.getMatrixIndex(), truck.getMaxLoad()));
+            Depot depot = depotList.get(x);
+            depot.getCurrentFleet().add(0, new Truck(truck.getId(), n.getMatrixIndex(), truck.getMaxLoad()));
+            depot.setMaxCapacity(depot.getMaxCapacity() + truck.getMaxLoad());
         }
         return true;
     }
 
-    private void splitPackages(List<OrderRequest> orderList, List<TruckRequest> truckList) {
-        int gcd = truckList.get(0).getMaxLoad();
-        int packages;
-
-        for (int i = 1; i < truckList.size(); i++) {
-            TruckRequest truck = truckList.get(i);
-            gcd = calculateGcd(gcd, truck.getMaxLoad());
-        }
-
-        for (int i = 0; i < orderList.size(); i++) {
-            OrderRequest order = orderList.get(i);
-            packages = order.getPackages();
-            if (packages > gcd) {
-                order.setPackages(gcd);
-                packages -= gcd;
-                orderList.add(i--, OrderRequest.builder().id(order.getId()).packages(packages)
-                        .remainingTime(order.getRemainingTime()).ubigeo(order.getUbigeo()).build());
-            }
-        }
-
-    }
-
     private Node findNode(List<Node> nodeList, String ubigeo) {
         return nodeList.stream().filter(node -> node.getUbigeo().equals(ubigeo)).findFirst().orElse(null);
-    }
-
-    private int calculateGcd(int a, int b) {
-        if (a == 0) return b;
-        if (b == 0) return a;
-        return calculateGcd(b, a % b);
     }
 }

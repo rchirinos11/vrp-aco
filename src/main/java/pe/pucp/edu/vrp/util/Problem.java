@@ -139,14 +139,18 @@ public class Problem {
         double minLength = 9999.9;
         int x = -1;
         for (int i = 0; i < depotList.size(); i++) {
-            Matrix matrixVal = mapGraph[depotList.get(i).getMatrixIndex()][order.getDestination().getMatrixIndex()];
-            if (!depotList.get(i).getCurrentFleet().isEmpty() && matrixVal.getHeuristicValue() < minLength && matrixVal.getHeuristicValue() > 0) {
+            Depot depot = depotList.get(i);
+            Matrix matrixVal = mapGraph[depot.getMatrixIndex()][order.getDestination().getMatrixIndex()];
+            if (!depot.getCurrentFleet().isEmpty() && matrixVal.getHeuristicValue() < minLength && matrixVal.getHeuristicValue() > 0
+                    && depot.getCurrentCapacity() + order.getPackageAmount() <= depot.getMaxCapacity()) {
                 minLength = matrixVal.getHeuristicValue();
                 x = i;
             }
         }
         if (x != -1) {
-            depotList.get(x).getDepotOrders().add(order);
+            Depot depot = depotList.get(x);
+            depot.getDepotOrders().add(order);
+            depot.setCurrentCapacity(depot.getCurrentCapacity() + order.getPackageAmount());
         }
     }
 

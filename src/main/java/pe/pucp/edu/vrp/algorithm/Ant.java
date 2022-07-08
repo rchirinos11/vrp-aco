@@ -77,6 +77,7 @@ public class Ant implements Comparable<Ant> {
                 } else {
                     count = 0;
                     visited.setOrderId(order.getOrderId());
+                    visited.setAmount(order.getPackageAmount());
                     boolean first = true;
                     while(existsOrder && order.getPackageAmount() + currentLoad < maxLoad) {
                         currentLoad += order.getPackageAmount();
@@ -86,6 +87,7 @@ public class Ant implements Comparable<Ant> {
                         } else {    //add partial/same node order to visited list
                             visited = new Visited(next.getUbigeo(), next.getMatrixIndex(), 0);
                             visited.setOrderId(order.getOrderId());
+                            visited.setAmount(order.getPackageAmount());
                             visitedList.add(visited);
                         }
 

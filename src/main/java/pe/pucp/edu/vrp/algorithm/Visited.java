@@ -10,6 +10,7 @@ public class Visited {
     private String ubigeo;
     private int matrixIndex;
     private double travelCost;
+    private int amount;
 
     public Visited(String ubigeo, int matrixIndex, double travelCost) {
         orderId = 0;

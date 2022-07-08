@@ -14,16 +14,20 @@ import java.util.Objects;
 public class Depot extends Node {
     private List<Truck> currentFleet;
     private List<Order> depotOrders;
-
+    private int maxCapacity;
+    private int currentCapacity;
 
     public Depot(Node origin) {
         super(origin.getUbigeo(), origin.getLongitude(), origin.getLatitude(), origin.getDepartment(), origin.getCity(), origin.getRegion(), origin.getMatrixIndex());
         depotOrders = new ArrayList<>();
         currentFleet = new ArrayList<>();
+        currentCapacity = 0;
+        maxCapacity = 0;
     }
 
     public List<Order> depotRouting(Matrix[][] mapGraph, List<Node> nodeList) {
         if (depotOrders.isEmpty()) return null;
+        splitPackages(depotOrders, currentFleet);
 
         System.out.println("\nPerforming routing for depot: " + getCity() + "\nOrders: " + depotOrders);
         SuperColony[] superColonyList = new SuperColony[Constant.ITERATIONS];
@@ -42,6 +46,33 @@ public class Depot extends Node {
         }
         System.out.printf("Total depot cost: %3.2f h\n", superColonyList[0].getCost());
         return copyList;
+    }
+
+    private void splitPackages(List<Order> orderList, List<Truck> truckList) {
+        int gcd = truckList.get(0).getMaxLoad();
+        int packages;
+
+        for (int i = 1; i < truckList.size(); i++) {
+            Truck truck = truckList.get(i);
+            gcd = calculateGcd(gcd, truck.getMaxLoad());
+        }
+
+        for (int i = 0; i < orderList.size(); i++) {
+            Order order = orderList.get(i);
+            packages = order.getPackageAmount();
+            if (packages > gcd) {
+                order.setPackageAmount(gcd);
+                packages -= gcd;
+                orderList.add(i--, Order.builder().orderId(order.getOrderId()).packageAmount(packages)
+                        .remainingTime(order.getRemainingTime()).destination(order.getDestination()).build());
+            }
+        }
+    }
+
+    private int calculateGcd(int a, int b) {
+        if (a == 0) return b;
+        if (b == 0) return a;
+        return calculateGcd(b, a % b);
     }
 
 }

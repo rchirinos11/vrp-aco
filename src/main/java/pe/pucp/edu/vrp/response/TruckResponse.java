@@ -15,7 +15,7 @@ import java.util.List;
 @Builder
 public class TruckResponse {
     private Integer id;
-    private List<Integer> orderList;
+    private List<SubOrderResponse> orderList;
     private List<NodeResponse> nodeRoute;
     private double load;
     private double cost;
