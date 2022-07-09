@@ -169,10 +169,12 @@ public class Problem {
 
     public static boolean isBlocked(int x, int y, double timePassed) {
         for (Connection cn : connectionList) {
-            if (cn.getXIndex() == x && cn.getYIndex() == y && !cn.isBlocked())
-                return false;
-            else if (cn.getXIndex() == x && cn.getYIndex() == y && cn.isBlocked()) {
-                return cn.getBlockadeStart() < timePassed && cn.getBlockadeEnd() > timePassed;
+            if (cn.getXIndex() == x && cn.getYIndex() == y || cn.getXIndex() == y && cn.getYIndex() == x) {
+               if (!cn.isBlocked()) {
+                   return false;
+               } else {
+                   return cn.getBlockadeStart() <= timePassed && cn.getBlockadeEnd() >= timePassed;
+               }
             }
         }
         return true;
@@ -181,6 +183,12 @@ public class Problem {
     public static void setBlockades(int x, int y, double start, double end) {
         for (Connection cn : connectionList) {
             if (cn.getXIndex() == x && cn.getYIndex() == y) {
+                cn.setBlocked(true);
+                cn.setBlockadeStart(start);
+                cn.setBlockadeEnd(end);
+            }
+
+            if (cn.getXIndex() == y && cn.getYIndex() == x) {
                 cn.setBlocked(true);
                 cn.setBlockadeStart(start);
                 cn.setBlockadeEnd(end);
