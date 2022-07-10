@@ -42,7 +42,7 @@ public class SuperColony implements Comparable<SuperColony> {
                 List<Visited> routeBack = antColony.routeBack(route.get(route.size() - 1).getMatrixIndex(), mapGraph, nodeList);
                 route.addAll(routeBack);
                 truck.setRoute(route);
-            } else if (ant.getCurrentLoad() < truck.getMaxLoad() && count < 30) {
+            } else if (ant.getCurrentLoad() < truck.getMaxLoad() && count < 50) {
                 i--;
                 count++;
             }

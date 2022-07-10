@@ -146,6 +146,14 @@ public class Problem {
             d.getDepotOrders().clear();
             d.getCurrentFleet().clear();
         }
+
+        for (Matrix[] array : mapGraph) {
+            for (Matrix m : array) {
+                if (m.getHeuristicValue() != 0) {
+                    m.setPheromoneConc(1.0);
+                }
+            }
+        }
     }
 
     public static void assignClosest(Order order) {
