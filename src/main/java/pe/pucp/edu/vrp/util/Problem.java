@@ -31,7 +31,6 @@ public class Problem {
     public static Matrix[][] mapGraph;
     public static List<Node> nodeList;
     public static List<Depot> depotList;
-    public static List<Connection> connectionList;
 
     public static void initParams() throws IOException {
         int size = readOffices();
@@ -112,7 +111,6 @@ public class Problem {
     }
 
     private static void readConnections() throws IOException {
-        connectionList = new ArrayList<>();
         File file = new File("inf226.tramos.v.2.0.txt");
         Scanner sc = new Scanner(file);
         int x, y;
@@ -120,11 +118,13 @@ public class Problem {
             String line = sc.nextLine();
             String[] values = line.trim().split(" => ");
 
-            Node n = nodeList.stream().filter(node -> node.getUbigeo().equals(values[0])).findFirst().orElse(null);
+            Node n = findNodeByUbigeo(values[0]);
             x = n.getMatrixIndex();
-            n = nodeList.stream().filter(node -> node.getUbigeo().equals(values[1])).findFirst().orElse(null);
+            n = findNodeByUbigeo(values[1]);
             y = n.getMatrixIndex();
-            connectionList.add(new Connection(x, y));
+            Connection connection = new Connection(x, y);
+            nodeList.get(x).getConnectionList().add(connection);
+            nodeList.get(y).getConnectionList().add(connection);
         }
     }
 
@@ -168,20 +168,33 @@ public class Problem {
     }
 
     public static boolean isBlocked(int x, int y, double timePassed) {
-        for (Connection cn : connectionList) {
+        Node xNode = nodeList.get(x);
+        for (Connection cn : xNode.getConnectionList()) {
             if (cn.getXIndex() == x && cn.getYIndex() == y || cn.getXIndex() == y && cn.getYIndex() == x) {
-               if (!cn.isBlocked()) {
-                   return false;
-               } else {
-                   return cn.getBlockadeStart() <= timePassed && cn.getBlockadeEnd() >= timePassed;
-               }
+                if (!cn.isBlocked()) {
+                    return false;
+                } else {
+                    return cn.getBlockadeStart() <= timePassed && cn.getBlockadeEnd() >= timePassed;
+                }
+            }
+        }
+
+        Node yNode = nodeList.get(y);
+        for (Connection cn : yNode.getConnectionList()) {
+            if (cn.getXIndex() == x && cn.getYIndex() == y || cn.getXIndex() == y && cn.getYIndex() == x) {
+                if (!cn.isBlocked()) {
+                    return false;
+                } else {
+                    return cn.getBlockadeStart() <= timePassed && cn.getBlockadeEnd() >= timePassed;
+                }
             }
         }
         return true;
     }
 
     public static void setBlockades(int x, int y, double start, double end) {
-        for (Connection cn : connectionList) {
+        Node xNode = nodeList.get(x);
+        for (Connection cn : xNode.getConnectionList()) {
             if (cn.getXIndex() == x && cn.getYIndex() == y) {
                 cn.setBlocked(true);
                 cn.setBlockadeStart(start);
@@ -194,6 +207,25 @@ public class Problem {
                 cn.setBlockadeEnd(end);
             }
         }
+
+        Node yNode = nodeList.get(y);
+        for (Connection cn : yNode.getConnectionList()) {
+            if (cn.getXIndex() == x && cn.getYIndex() == y) {
+                cn.setBlocked(true);
+                cn.setBlockadeStart(start);
+                cn.setBlockadeEnd(end);
+            }
+
+            if (cn.getXIndex() == y && cn.getYIndex() == x) {
+                cn.setBlocked(true);
+                cn.setBlockadeStart(start);
+                cn.setBlockadeEnd(end);
+            }
+        }
+    }
+
+    public static Node findNodeByUbigeo(String ubigeo) {
+        return nodeList.stream().filter(node -> node.getUbigeo().equals(ubigeo)).findFirst().orElse(null);
     }
 
     public static float invSqrt(float number) {
